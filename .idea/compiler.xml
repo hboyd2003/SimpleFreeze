@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.seasar.doma/doma-processor/3.11.1/6942ce8b22581b629eb10a89da504e3b03b9f20a/doma-processor-3.11.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.seasar.doma/doma-core/3.11.1/d050d56ccc4e5a63b7a6312a3777a99a04dbfd95/doma-core-3.11.1.jar" />
+        </processorPath>
+        <module name="simplefreeze.simplefreeze-plugin.main" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel target="25">
+      <module name="EventCore" target="25" />
+      <module name="EventCore.main" target="25" />
+      <module name="EventCore.test" target="25" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

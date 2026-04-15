@@ -1,0 +1,90 @@
+[versions]
+paperAPI = "1.21.8-R0.1-SNAPSHOT"
+
+# Gradle Plugins
+gradleShadow = "9.4.0"
+paperweight = "2.0.0-beta.19"
+runPaper = "3.0.2"
+paperLoaderGen = "1.0.1"
+
+# Libraries
+adventureAPI = "4.26.1"
+configurate = "4.2.0"
+configurateNBT = "1.0.0"
+prismatic = "1.0-SNAPSHOT"
+packetEvents = "2.11.2"
+classGraph = "4.8.184"
+doma = "3.11.1"
+chasm = "1.0.1"
+jetbrainsAnnotations = "26.1.0"
+jspecify = "1.0.0"
+
+# JDBC
+sqliteJDBC = "3.51.2.0"
+mariaDBJDBC = "3.5.7"
+mySQLJDBC = "9.6.0"
+
+# Testing
+junit = "6.0.3"
+minecraft = "1.21.11"
+
+[plugins]
+gradleShadow = { id = "com.gradleup.shadow", version.ref = "gradleShadow" }
+paperweight = { id = "io.papermc.paperweight.userdev", version.ref = "paperweight" }
+runPaper = { id = "xyz.jpenilla.run-paper", version.ref = "runPaper" }
+paperLoaderGen = { id = "dev.hboyd.paper-loader-gen", version.ref = "paperLoaderGen" }
+
+[libraries]
+paperAPI = { group = "io.papermc.paper", name = "paper-api", version.ref = "paperAPI" }
+
+packetEvents = { group = "com.github.retrooper", name = "packetevents-spigot", version.ref = "packetEvents" }
+classGraph = { group = "io.github.classgraph", name = "classgraph", version.ref = "classGraph" }
+chasm = { group = "dev.hboyd", name = "chasm-lib", version.ref = "chasm" }
+jetbrainsAnnotations = { group = "org.jetbrains", name = "annotations", version.ref = "jetbrainsAnnotations" }
+jspecify = { group = "org.jspecify", name = "jspecify", version.ref = "jspecify" }
+
+# Doma
+doma = { group = "org.seasar.doma", name = "doma-core", version.ref = "doma"}
+domaProcessor = { group = "org.seasar.doma", name = "doma-processor", version.ref = "doma"}
+domaSLF4J = { group = "org.seasar.doma", name = "doma-slf4j", version.ref = "doma"}
+
+# JDBC
+mariaDBJDBC = { group = "org.mariadb.jdbc", name = "mariadb-java-client", version.ref = "mariaDBJDBC"}
+sqliteJDBC = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "sqliteJDBC"}
+mySQLJDBC = { group = "com.mysql", name = "mysql-connector-j", version.ref = "mySQLJDBC"}
+
+# Adventure
+adventureSerializerConfigurate4 = { group = "net.kyori", name = "adventure-serializer-configurate4", version.ref = "adventureAPI" }
+adventureSerializerANSI = { group = "net.kyori", name = "adventure-text-serializer-ansi", version.ref = "adventureAPI" }
+
+# Configurate
+configurateHocon = { group = "org.spongepowered", name = "configurate-hocon", version.ref = "configurate" }
+configurateNBT = { group = "dev.hboyd", name = "configurate-nbt", version.ref = "configurateNBT" }
+
+# Prismatic
+prismaticLib = { group = "dev.hboyd", name = "prismatic-lib", version.ref = "prismatic" }
+prismaticPaper = { group = "dev.hboyd", name = "prismatic-paper", version.ref = "prismatic" }
+
+# Testing
+junitJupiterEngine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit" }
+junitPlatformLauncher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junit" }
+
+[bundles]
+prismatic = [
+    "prismaticLib",
+    "prismaticPaper"
+]
+doma = [
+    "doma",
+    "domaSLF4J"
+]
+configurate = [
+    "configurateHocon",
+    "configurateNBT"
+]
+
+# Testing
+junitJupiterRuntime = [
+    "junitJupiterEngine",
+    "junitPlatformLauncher"
+]
