@@ -1,0 +1,46 @@
+name: SimpleFreeze
+version: '$version'
+description: Simple Freeze provides quick and efficient Player freezing for Admins and plugins
+website: https://github.com/hboyd2003/SimpleFreeze
+authors: [ Harrison Boyd ]
+main: dev.hboyd.simplefreeze.SimpleFreeze
+loader: dev.hboyd.simplefreeze.SimpleFreezeLoader
+bootstrapper: dev.hboyd.simplefreeze.SimpleFreezeBootstrapper
+load: STARTUP
+api-version: '$paperAPIVersion'
+folia-supported: true
+dependencies:
+  server:
+    packetevents:
+      load: BEFORE
+      join-classpath: true
+      required: true
+    Chasm:
+      load: OMIT
+      join-classpath: true
+      required: false
+permissions:
+  simplefreeze:
+    description: Root SimpleFreeze permission
+    children:
+      simplefreeze.command:
+        description: All SimpleFreeze commands
+        children:
+          simplefreeze.command.simplefreeze:
+            description: simplefreeze command
+            children:
+              simplefreeze.command.simplefreeze.version:
+                description: simplefreeze version subcommand
+              simplefreeze.command.simplefreeze.list:
+                description: simplefreeze list subcommand
+              simplefreeze.command.simplefreeze.status:
+                description: simplefreeze status subcommand
+              simplefreeze.command.simplefreeze.status.player:
+                description: simplefreeze player status subcommand
+          simplefreeze.command.freeze:
+            description: freeze command
+          simplefreeze.command.unfreeze:
+            description: unfreeze command
+
+
+
