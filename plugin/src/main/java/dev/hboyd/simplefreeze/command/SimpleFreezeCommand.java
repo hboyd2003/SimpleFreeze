@@ -48,10 +48,20 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.SignStyle;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static java.time.temporal.ChronoField.*;
+import static java.time.temporal.ChronoField.DAY_OF_MONTH;
+import static java.time.temporal.ChronoField.HOUR_OF_DAY;
+import static java.time.temporal.ChronoField.MINUTE_OF_HOUR;
+import static java.time.temporal.ChronoField.MONTH_OF_YEAR;
+import static java.time.temporal.ChronoField.SECOND_OF_MINUTE;
+import static java.time.temporal.ChronoField.YEAR;
 
 public class SimpleFreezeCommand implements BrigadierCommand {
     private static final SimpleCommandExceptionType NO_FROZEN_PLAYERS_EXCEPTION =
@@ -76,11 +86,10 @@ public class SimpleFreezeCommand implements BrigadierCommand {
             .appendOffsetId()
             .toFormatter();
 
-
     private final SimpleFreeze simpleFreeze;
     private final LiteralCommandNode<CommandSourceStack> simpleFreezeCommand;
 
-    public SimpleFreezeCommand(SimpleFreeze simpleFreeze) {
+    public SimpleFreezeCommand(final SimpleFreeze simpleFreeze) {
         this.simpleFreeze = simpleFreeze;
         this.simpleFreezeCommand = Commands.literal("simplefreeze")
                 .then(Commands.literal("version")
@@ -98,7 +107,7 @@ public class SimpleFreezeCommand implements BrigadierCommand {
     }
 
     @Override
-    public void register(Commands commands) {
+    public void register(final Commands commands) {
         commands.register(this.simpleFreezeCommand, "Commands for information about SimpleFreeze and its status", List.of("sf"));
     }
 
@@ -107,7 +116,7 @@ public class SimpleFreezeCommand implements BrigadierCommand {
         return List.of();
     }
 
-    private int version(CommandContext<CommandSourceStack> commandContext) {
+    private int version(final CommandContext<CommandSourceStack> commandContext) {
         commandContext.getSource().getSender()
                 .sendMessage(Component.translatable("simplefreeze.command.version",
                         Argument.string("version", this.simpleFreeze.getPluginMeta().getVersion())));
@@ -115,10 +124,10 @@ public class SimpleFreezeCommand implements BrigadierCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private int status(CommandContext<CommandSourceStack> commandContext) {
+    private int status(final CommandContext<CommandSourceStack> commandContext) {
         final Map<OfflinePlayer, LinkedHashSet<Key>> freezeEntryMap = this.simpleFreeze.freezeManager().getFreezeEntryMap();
 
-        List<Component> responseLines = List.of(
+        final List<Component> responseLines = List.of(
                 Component.translatable("simplefreeze.command.simplefreeze.status.total",
                         Argument.numeric("player_count", freezeEntryMap.size())),
                 Component.translatable("simplefreeze.command.simplefreeze.status.uniqueKeys",
@@ -135,13 +144,13 @@ public class SimpleFreezeCommand implements BrigadierCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private int playerStatus(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
-        OfflinePlayer offlinePlayer = commandContext.getArgument("player", CustomOfflinePlayerArgumentResolver.class)
+    private int playerStatus(final CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
+        final OfflinePlayer offlinePlayer = commandContext.getArgument("player", CustomOfflinePlayerArgumentResolver.class)
                 .resolve(commandContext.getSource()).iterator().next();
 
-        LinkedHashSet<Key> freezeEntries = this.simpleFreeze.freezeManager().getFreezeEntries(offlinePlayer);
+        final LinkedHashSet<Key> freezeEntries = this.simpleFreeze.freezeManager().getFreezeEntries(offlinePlayer);
 
-        List<Component> responseLines = List.of(
+        final List<Component> responseLines = List.of(
                 Component.translatable("simplefreeze.command.simplefreeze.status.player.totalentries",
                         Argument.numeric("freeze_entry_count", (long) freezeEntries.size())),
                 Component.translatable("simplefreeze.command.simplefreeze.status.player.entries",
@@ -161,12 +170,12 @@ public class SimpleFreezeCommand implements BrigadierCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private int list(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
-        ArrayList<Component> frozenPlayerList = new ArrayList<>();
-        for (OfflinePlayer frozenPlayer : this.simpleFreeze.freezeManager().frozenPlayers()) {
-            LinkedHashSet<Key> freezeEntries = this.simpleFreeze.freezeManager().getFreezeEntries(frozenPlayer);
+    private int list(final CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
+        final ArrayList<Component> frozenPlayerList = new ArrayList<>();
+        for (final OfflinePlayer frozenPlayer : this.simpleFreeze.freezeManager().frozenPlayers()) {
+            final LinkedHashSet<Key> freezeEntries = this.simpleFreeze.freezeManager().getFreezeEntries(frozenPlayer);
 
-            Component hoverComponent;
+            final Component hoverComponent;
             if (freezeEntries.size() == 1)
                 hoverComponent = Component.translatable("simplefreeze.command.simplefreeze.list.frozen_by",
                         Argument.string("plugin_name", freezeEntries.getFirst().toString()));
@@ -174,7 +183,7 @@ public class SimpleFreezeCommand implements BrigadierCommand {
                 hoverComponent = Component.translatable("simplefreeze.command.simplefreeze.list.frozen_by_count",
                         Argument.numeric("plugin_count", freezeEntries.size()));
 
-            String name = Optional.ofNullable(frozenPlayer.getName()).orElse(frozenPlayer.getUniqueId().toString());
+            final String name = Optional.ofNullable(frozenPlayer.getName()).orElse(frozenPlayer.getUniqueId().toString());
             frozenPlayerList.add(Component.text(name).hoverEvent(HoverEvent.showText(hoverComponent)));
         }
 

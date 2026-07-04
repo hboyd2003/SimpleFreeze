@@ -18,7 +18,11 @@
 
 package dev.hboyd.simplefreeze.database;
 
-import org.seasar.doma.*;
+import org.seasar.doma.Dao;
+import org.seasar.doma.Insert;
+import org.seasar.doma.Script;
+import org.seasar.doma.Select;
+import org.seasar.doma.Sql;
 
 @Dao
 public interface SimpleFreezeMetadataDao {
@@ -57,7 +61,6 @@ public interface SimpleFreezeMetadataDao {
              WHERE entry_key == freeze_entry_schema_version
             """)
     String getFreezeEntrySchemaVersion();
-
 
     @Insert
     @Sql("""

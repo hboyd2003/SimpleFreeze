@@ -23,17 +23,16 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.seasar.doma.ExternalDomain;
 import org.seasar.doma.jdbc.domain.DomainConverter;
 
-
 @ExternalDomain
 public class ComponentDomainConverter implements DomainConverter<Component, String> {
 
     @Override
-    public String fromDomainToValue(Component component) {
+    public String fromDomainToValue(final Component component) {
         return MiniMessage.miniMessage().serialize(component);
     }
 
     @Override
-    public Component fromValueToDomain(String minimessage) {
+    public Component fromValueToDomain(final String minimessage) {
         if (minimessage == null) return null;
         return MiniMessage.miniMessage().deserialize(minimessage);
     }

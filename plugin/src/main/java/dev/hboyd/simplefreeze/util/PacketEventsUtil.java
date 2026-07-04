@@ -22,14 +22,14 @@ import com.github.retrooper.packetevents.protocol.world.Location;
 import com.github.retrooper.packetevents.util.Vector3d;
 import org.jspecify.annotations.NonNull;
 
-public class PacketEventsUtil {
+public final class PacketEventsUtil {
     private PacketEventsUtil() {}
 
-    public static @NonNull Vector3d toVector3d(org.bukkit.Location location) {
+    public static @NonNull Vector3d toVector3d(final org.bukkit.Location location) {
         return new Vector3d(location.x(), location.y(), location.z());
     }
 
-    public static @NonNull Location toPacketEventsLocation(org.bukkit.Location location) {
+    public static @NonNull Location toPacketEventsLocation(final org.bukkit.Location location) {
         return new Location(location.x(), location.y(), location.z(), location.getYaw(), location.getPitch());
     }
 }

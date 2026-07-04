@@ -27,12 +27,12 @@ import java.time.Instant;
 public class InstantDomainConverter implements DomainConverter<Instant, Long> {
 
     @Override
-    public Long fromDomainToValue(Instant instant) {
+    public Long fromDomainToValue(final Instant instant) {
         return instant.getEpochSecond();
     }
 
     @Override
-    public Instant fromValueToDomain(Long value) {
+    public Instant fromValueToDomain(final Long value) {
         if (value == null) return null;
         return Instant.ofEpochSecond(value);
     }

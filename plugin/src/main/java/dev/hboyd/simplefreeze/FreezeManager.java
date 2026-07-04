@@ -32,12 +32,25 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.wrapper.play.server.*;
-import dev.hboyd.simplefreeze.database.*;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCamera;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChangeGameState;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCloseWindow;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDestroyEntities;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityMetadata;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerHeldItemChange;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetPassengers;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSpawnEntity;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerVehicleMove;
+import dev.hboyd.simplefreeze.database.FreezeEntry;
+import dev.hboyd.simplefreeze.database.FreezeEntryDao;
+import dev.hboyd.simplefreeze.database.FreezeEntryDaoImpl;
+import dev.hboyd.simplefreeze.database.PreFreezeState;
+import dev.hboyd.simplefreeze.database.PreFreezeStateDao;
+import dev.hboyd.simplefreeze.database.PreFreezeStateDaoImpl;
 import dev.hboyd.simplefreeze.util.PacketEventsUtil;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
-import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import io.papermc.paper.event.executor.EventExecutorFactory;
 import io.papermc.paper.event.player.PlayerPickItemEvent;
 import io.papermc.paper.event.player.PlayerTrackEntityEvent;
@@ -51,7 +64,10 @@ import net.kyori.adventure.util.Ticks;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -59,9 +75,23 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
-import org.bukkit.event.entity.*;
+import org.bukkit.event.entity.ArrowBodyCountChangeEvent;
+import org.bukkit.event.entity.EntityDismountEvent;
+import org.bukkit.event.entity.EntityEvent;
+import org.bukkit.event.entity.EntityMountEvent;
+import org.bukkit.event.entity.EntityResurrectEvent;
+import org.bukkit.event.entity.EntitySpawnEvent;
+import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.player.*;
+import org.bukkit.event.player.PlayerEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerKickEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+import org.bukkit.event.player.PlayerToggleFlightEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.event.player.PlayerToggleSprintEvent;
 import org.bukkit.event.vehicle.VehicleCreateEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.vehicle.VehicleEvent;
@@ -74,23 +104,32 @@ import org.seasar.doma.jdbc.Config;
 
 import java.lang.reflect.Method;
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public final class FreezeManager implements IFreezeManager, Listener , PacketListener {
+public final class FreezeManager implements IFreezeManager, Listener, PacketListener {
     private static final String FROZEN_SCOREBOARD_TAG = "frozen";
     private static final Title.Times FROZEN_TITLE_TIMES = Title.Times.times(Duration.ZERO, Ticks.duration(20), Duration.ZERO);
     private static final int BLOCK_DISPLAY_ENTITY_ID = Integer.MAX_VALUE;
 
     /**
-     * List of all cancellable events that are excluded from the standard handling or not handled at all
+     * List of all cancellable events that are excluded from the standard handling or not handled at all.
      */
     private static final List<Class<? extends Event>> CANCELLABLE_EVENT_EXCEPTIONS = List.of(
             PlayerKickEvent.class, // Players should still be kickable
             PlayerTrackEntityEvent.class, // Players should still be able to track entities
             PlayerStartSpectatingEntityEvent.class, // Players can't be frozen in spectator mode
-            EntityResurrectEvent.class,  // Players can't take damage or die
+            EntityResurrectEvent.class, // Players can't take damage or die
             EntityTargetEvent.class, // Special handling
             EntitySpawnEvent.class, // Player cannot be mounted at moment of spawn
             EntityDismountEvent.class, // Player's must be able to dismount an entity of disconnect
@@ -114,7 +153,7 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
     private final PreFreezeStateDao preFreezeStateDao;
     private final boolean alwaysDisconnectWithEntity;
 
-    FreezeManager(Config databaseConfig, boolean alwaysDisconnectWithEntity) {
+    FreezeManager(final Config databaseConfig, final boolean alwaysDisconnectWithEntity) {
         this.freezeEntryDao = new FreezeEntryDaoImpl(databaseConfig);
         this.preFreezeStateDao = new PreFreezeStateDaoImpl(databaseConfig);
         this.alwaysDisconnectWithEntity = alwaysDisconnectWithEntity;
@@ -128,27 +167,27 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
                 50,
                 TimeUnit.MILLISECONDS);
         try {
-            registerEvents(findCancellableEvents(PlayerEvent.class), EventPriority.HIGHEST, this.getClass().getDeclaredMethod("handleCancellablePlayerEvent", PlayerEvent.class));
-            registerEvents(findCancellableEvents(EntityEvent.class), EventPriority.HIGHEST, this.getClass().getDeclaredMethod("handleCancellableEntityEvent", EntityEvent.class));
-            registerEvents(findCancellableEvents(VehicleEvent.class), EventPriority.HIGHEST, this.getClass().getDeclaredMethod("handleCancellableVehicleEvent", VehicleEvent.class));
-        } catch (NoSuchMethodException e) {
+            this.registerEvents(this.findCancellableEvents(PlayerEvent.class), EventPriority.HIGHEST, this.getClass().getDeclaredMethod("handleCancellablePlayerEvent", PlayerEvent.class));
+            this.registerEvents(this.findCancellableEvents(EntityEvent.class), EventPriority.HIGHEST, this.getClass().getDeclaredMethod("handleCancellableEntityEvent", EntityEvent.class));
+            this.registerEvents(this.findCancellableEvents(VehicleEvent.class), EventPriority.HIGHEST, this.getClass().getDeclaredMethod("handleCancellableVehicleEvent", VehicleEvent.class));
+        } catch (final NoSuchMethodException e) {
             throw new IllegalStateException(e);
         }
         PacketEvents.getAPI().getEventManager().registerListener(this, PacketListenerPriority.NORMAL);
     }
 
     @Override
-    public boolean isPlayerFrozen(OfflinePlayer offlinePlayer) {
+    public boolean isPlayerFrozen(final OfflinePlayer offlinePlayer) {
         Objects.requireNonNull(offlinePlayer, "offlinePlayer");
 
-        Player player = offlinePlayer.getPlayer();
+        final Player player = offlinePlayer.getPlayer();
         if (player != null) return player.getScoreboardTags().contains(FROZEN_SCOREBOARD_TAG);
 
         return this.preFreezeStateDao.exists(offlinePlayer.getUniqueId());
     }
 
     @Override
-    public @Unmodifiable LinkedHashSet<Key> getFreezeEntries(OfflinePlayer offlinePlayer) {
+    public @Unmodifiable LinkedHashSet<Key> getFreezeEntries(final OfflinePlayer offlinePlayer) {
         Objects.requireNonNull(offlinePlayer, "offlinePlayer");
 
         return new LinkedHashSet<>(this.freezeEntryDao.getKeys(offlinePlayer.getUniqueId()));
@@ -156,9 +195,9 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
 
     @Override
     public @Unmodifiable Map<OfflinePlayer, LinkedHashSet<Key>> getFreezeEntryMap() {
-        Map<UUID, LinkedHashSet<Key>> freezeEntryMap = new HashMap<>();
-        for (FreezeEntry freezeEntry : this.freezeEntryDao.get()) {
-            LinkedHashSet<Key> keySet = freezeEntryMap.getOrDefault(freezeEntry.playerUuid(), new LinkedHashSet<>());
+        final Map<UUID, LinkedHashSet<Key>> freezeEntryMap = new HashMap<>();
+        for (final FreezeEntry freezeEntry : this.freezeEntryDao.get()) {
+            final LinkedHashSet<Key> keySet = freezeEntryMap.getOrDefault(freezeEntry.playerUuid(), new LinkedHashSet<>());
             keySet.add(freezeEntry.entryKey());
             freezeEntryMap.put(freezeEntry.playerUuid(), keySet);
         }
@@ -176,7 +215,7 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
     }
 
     @Override
-    public @Unmodifiable Set<OfflinePlayer> frozenPlayers(Key entryKey) {
+    public @Unmodifiable Set<OfflinePlayer> frozenPlayers(final Key entryKey) {
         Objects.requireNonNull(entryKey, "entryKey");
 
         return this.freezeEntryDao.getUuids(entryKey).stream()
@@ -185,18 +224,18 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
     }
 
     @Override
-    public void addFreezeEntry(OfflinePlayer player, Key entryKey) {
-        addFreezeEntry(player, entryKey, null);
+    public void addFreezeEntry(final OfflinePlayer player, final Key entryKey) {
+        this.addFreezeEntry(player, entryKey, null);
     }
 
     @Override
-    public void addFreezeEntry(OfflinePlayer offlinePlayer, Key entryKey, @Nullable Component title) {
+    public void addFreezeEntry(final OfflinePlayer offlinePlayer, final Key entryKey, @Nullable final Component title) {
         Objects.requireNonNull(offlinePlayer, "offlinePlayer");
         Objects.requireNonNull(entryKey, "entryKey");
 
-        Player player = offlinePlayer.getPlayer();
-        if (player != null && !player.isDead()  && !this.freezeEntryDao.exists(player.getUniqueId()))
-            setPlayerFreezeState(player);
+        final Player player = offlinePlayer.getPlayer();
+        if (player != null && !player.isDead() && !this.freezeEntryDao.exists(player.getUniqueId()))
+            this.setPlayerFreezeState(player);
 
         this.freezeEntryDao.insert(new FreezeEntry(offlinePlayer.getUniqueId(), entryKey, title));
 
@@ -204,14 +243,14 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
     }
 
     @Override
-    public boolean removeFreezeEntry(OfflinePlayer offlinePlayer, Key entryKey) throws IllegalStateException {
+    public boolean removeFreezeEntry(final OfflinePlayer offlinePlayer, final Key entryKey) throws IllegalStateException {
         Objects.requireNonNull(offlinePlayer, "offlinePlayer");
         Objects.requireNonNull(entryKey, "entryKey");
 
         if (this.freezeEntryDao.delete(offlinePlayer.getUniqueId(), entryKey) >= 1) {
-            Player player = offlinePlayer.getPlayer();
+            final Player player = offlinePlayer.getPlayer();
             if (player != null && !this.freezeEntryDao.exists(player.getUniqueId()))
-                restore(player);
+                this.restore(player);
 
             return true;
         }
@@ -220,15 +259,15 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
     }
 
     @Override
-    public boolean forceUnfreezePlayer(OfflinePlayer offlinePlayer) {
+    public boolean forceUnfreezePlayer(final OfflinePlayer offlinePlayer) {
         Objects.requireNonNull(offlinePlayer, "offlinePlayer");
 
         this.freezeEntryDao.deleteAll(offlinePlayer.getUniqueId());
 
-        Optional<PreFreezeState> preFreezeState = this.preFreezeStateDao.get(offlinePlayer.getUniqueId());
-        boolean hadPreFreezeState = preFreezeState.isPresent();
+        final Optional<PreFreezeState> preFreezeState = this.preFreezeStateDao.get(offlinePlayer.getUniqueId());
+        final boolean hadPreFreezeState = preFreezeState.isPresent();
 
-        Player player = offlinePlayer.getPlayer();
+        final Player player = offlinePlayer.getPlayer();
         if (player != null) {
             preFreezeState.orElseGet(() -> PreFreezeState
                             .defaultOf(player))
@@ -242,8 +281,8 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
         return hadPreFreezeState;
     }
 
-    private void tick(ScheduledTask task) {
-        for (Player player : Bukkit.getOnlinePlayers()) {
+    private void tick(final ScheduledTask task) {
+        for (final Player player : Bukkit.getOnlinePlayers()) {
             if (!this.isPlayerFrozen(player)) continue;
 
             player.showTitle(Title.title(
@@ -253,7 +292,7 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
 
             player.sendActionBar(Component.translatable("simplefreeze.ui.frozen.actionbar"));
 
-            reaffirmFreezeState(player);
+            this.reaffirmFreezeState(player);
             player.resetIdleDuration();
         }
     }
@@ -261,14 +300,14 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
     //region Events
     @Override
     @ApiStatus.Internal
-    public void onPacketReceive(PacketReceiveEvent event) {
+    public void onPacketReceive(final PacketReceiveEvent event) {
         final Player player = event.getPlayer();
         if (event.isCancelled()
                 || player == null
                 || !this.isPlayerFrozen(player))
             return;
 
-        boolean cancelled = switch (event.getPacketType()) {
+        final boolean cancelled = switch (event.getPacketType()) {
             case PacketType.Play.Client.PLAYER_INPUT,
                  PacketType.Play.Client.PLAYER_ROTATION,
                  PacketType.Play.Client.PLAYER_POSITION,
@@ -284,7 +323,7 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
                 yield true;
             }
             case PacketType.Play.Client.HELD_ITEM_CHANGE -> {
-                WrapperPlayServerHeldItemChange heldItemChangePacket = new WrapperPlayServerHeldItemChange(player.getInventory().getHeldItemSlot());
+                final WrapperPlayServerHeldItemChange heldItemChangePacket = new WrapperPlayServerHeldItemChange(player.getInventory().getHeldItemSlot());
                 PacketEvents.getAPI().getPlayerManager().sendPacket(player, heldItemChangePacket);
                 player.updateInventory();
 
@@ -293,7 +332,7 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
             case PacketType.Play.Client.CLICK_WINDOW,
                  PacketType.Play.Client.CLICK_WINDOW_BUTTON,
                  PacketType.Play.Client.CREATIVE_INVENTORY_ACTION -> {
-                WrapperPlayServerCloseWindow closeWindowPacket = new WrapperPlayServerCloseWindow();
+                final WrapperPlayServerCloseWindow closeWindowPacket = new WrapperPlayServerCloseWindow();
                 PacketEvents.getAPI().getPlayerManager().sendPacket(player, closeWindowPacket);
                 player.updateInventory();
 
@@ -305,8 +344,8 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
         event.setCancelled(cancelled);
     }
 
-    private void registerEvents(Collection<Class<? extends Event>> events, EventPriority priority, Method method) {
-        for (Class<? extends Event> event : events) {
+    private void registerEvents(final Collection<Class<? extends Event>> events, final EventPriority priority, final Method method) {
+        for (final Class<? extends Event> event : events) {
             Bukkit.getPluginManager().registerEvent(event,
                     this,
                     priority,
@@ -316,26 +355,26 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
     }
 
     @ApiStatus.Internal
-    public void handleCancellablePlayerEvent(PlayerEvent event) {
+    public void handleCancellablePlayerEvent(final PlayerEvent event) {
         if (this.isEntityFrozen(event.getPlayer()))
             ((Cancellable) event).setCancelled(true);
     }
 
     @ApiStatus.Internal
-    public void handleCancellableEntityEvent(EntityEvent event) {
+    public void handleCancellableEntityEvent(final EntityEvent event) {
         if (this.isEntityFrozen(event.getEntity()))
             ((Cancellable) event).setCancelled(true);
     }
 
     @ApiStatus.Internal
-    public void handleCancellableVehicleEvent(VehicleEvent event) {
+    public void handleCancellableVehicleEvent(final VehicleEvent event) {
         if (this.isEntityFrozen(event.getVehicle()))
             ((Cancellable) event).setCancelled(true);
     }
 
-    private List<Class<? extends Event>> findCancellableEvents(Class<? extends Event> eventSuperClass) {
-        try (ScanResult scanResult = new ClassGraph().enableClassInfo().enableMethodInfo().acceptClasses().scan()) {
-            @SuppressWarnings("unchecked") List<Class<? extends Event>> cancellableEvents = scanResult
+    private List<Class<? extends Event>> findCancellableEvents(final Class<? extends Event> eventSuperClass) {
+        try (final ScanResult scanResult = new ClassGraph().enableClassInfo().enableMethodInfo().acceptClasses().scan()) {
+            @SuppressWarnings("unchecked") final List<Class<? extends Event>> cancellableEvents = scanResult
                     .getClassesImplementing(Cancellable.class)
                     .getStandardClasses()
                     .filter(classInfo -> classInfo.hasDeclaredMethod("getHandlerList"))
@@ -345,8 +384,8 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
                     .filter(eventClass -> !CANCELLABLE_EVENT_EXCEPTIONS.contains(eventClass))
                     .collect(Collectors.toList());
 
-            ComponentBuilder<TextComponent, TextComponent.Builder> componentBuilder = Component.text().appendNewline().append(Component.text("Cancellable " + eventSuperClass.getName() + " Events: "));
-            for (Class<?> cancellableEvent : cancellableEvents) {
+            final ComponentBuilder<TextComponent, TextComponent.Builder> componentBuilder = Component.text().appendNewline().append(Component.text("Cancellable " + eventSuperClass.getName() + " Events: "));
+            for (final Class<?> cancellableEvent : cancellableEvents) {
                 componentBuilder.appendNewline().append(Component.text(cancellableEvent.getName()));
             }
             SimpleFreeze.LOGGER.info(componentBuilder.build());
@@ -355,7 +394,7 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
     }
 
     @EventHandler
-    private void onTargetEvent(EntityTargetEvent event) {
+    private void onTargetEvent(final EntityTargetEvent event) {
         if (event.getTarget() == null) return;
 
         if (this.isEntityFrozen(event.getTarget()) || this.isEntityFrozen(event.getEntity()))
@@ -363,28 +402,28 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
     }
 
     @EventHandler
-    private void onEnchantItem(EnchantItemEvent event) {
+    private void onEnchantItem(final EnchantItemEvent event) {
         if (this.isPlayerFrozen(event.getEnchanter())) event.setCancelled(true);
     }
 
     @EventHandler
-    private void onPrepareItemEnchant(PrepareItemEnchantEvent event) {
+    private void onPrepareItemEnchant(final PrepareItemEnchantEvent event) {
         if (this.isEntityFrozen(event.getEnchanter())) event.setCancelled(true);
     }
 
     @EventHandler
-    private void onPlayerJoinEvent(PlayerJoinEvent event) {
+    private void onPlayerJoinEvent(final PlayerJoinEvent event) {
         // Sync freeze state if changed offline or reestablish virtual spectator if needed
         if (event.getPlayer().getScoreboardTags().contains(FROZEN_SCOREBOARD_TAG)) {
             if (!this.freezeEntryDao.exists(event.getPlayer().getUniqueId()))
-                restore(event.getPlayer());
-            else configureVirtualSpectator(event.getPlayer());
+                this.restore(event.getPlayer());
+            else this.configureVirtualSpectator(event.getPlayer());
         } else if (this.freezeEntryDao.exists(event.getPlayer().getUniqueId()))
-            setPlayerFreezeState(event.getPlayer());
+            this.setPlayerFreezeState(event.getPlayer());
     }
 
     @EventHandler
-    private void onPlayerQuitEvent(PlayerQuitEvent event) {
+    private void onPlayerQuitEvent(final PlayerQuitEvent event) {
         if (!this.isPlayerFrozen(event.getPlayer())) return;
 
         final Entity vehicle = event.getPlayer().getVehicle();
@@ -397,23 +436,23 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
     }
 
     @EventHandler
-    private void onPlayerPostRespawn(PlayerPostRespawnEvent event) {
+    private void onPlayerPostRespawn(final PlayerPostRespawnEvent event) {
         // Sync freeze state if changed while dead
         if (event.getPlayer().getScoreboardTags().contains(FROZEN_SCOREBOARD_TAG)) {
             if (!this.freezeEntryDao.exists(event.getPlayer().getUniqueId()))
-                restore(event.getPlayer());
+                this.restore(event.getPlayer());
         } else if (this.freezeEntryDao.exists(event.getPlayer().getUniqueId()))
-            setPlayerFreezeState(event.getPlayer());
+            this.setPlayerFreezeState(event.getPlayer());
     }
     //endregion
 
-    private void restore(Player player) {
+    private void restore(final Player player) {
         // Restore vehicle
-        Entity vehicle = player.getVehicle();
+        final Entity vehicle = player.getVehicle();
         if (vehicle != null && vehicle.getPassengers().getFirst() == player) {
             vehicle.getScoreboardTags().remove(FROZEN_SCOREBOARD_TAG);
 
-            Optional<PreFreezeState> preFreezeState = this.preFreezeStateDao.get(vehicle.getUniqueId());
+            final Optional<PreFreezeState> preFreezeState = this.preFreezeStateDao.get(vehicle.getUniqueId());
             if (preFreezeState.isPresent()) preFreezeState.get().restoreTo(vehicle);
             else {
                 SimpleFreeze.LOGGER.warn("Failed to find pre-freeze state for entity {} ({}). Entity will be set to a default state", vehicle.getType().getKey(), vehicle.getUniqueId());
@@ -425,7 +464,7 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
                     .map(Entity::getEntityId)
                     .mapToInt(i -> i)
                     .toArray();
-            WrapperPlayServerSetPassengers playerSetPassengersPacket = new WrapperPlayServerSetPassengers(player.getVehicle().getEntityId(), vehiclePassengers);
+            final WrapperPlayServerSetPassengers playerSetPassengersPacket = new WrapperPlayServerSetPassengers(player.getVehicle().getEntityId(), vehiclePassengers);
             PacketEvents.getAPI().getPlayerManager().sendPacket(player, playerSetPassengersPacket);
         }
 
@@ -435,8 +474,8 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
         player.clearTitle();
         player.sendActionBar(Component.empty());
 
-        removeVirtualSpectator(player);
-        Optional<PreFreezeState> preFreezeState = this.preFreezeStateDao.get(player.getUniqueId());
+        this.removeVirtualSpectator(player);
+        final Optional<PreFreezeState> preFreezeState = this.preFreezeStateDao.get(player.getUniqueId());
         if (preFreezeState.isPresent()) preFreezeState.get().restoreTo(player);
         else {
             SimpleFreeze.LOGGER.warn("Failed to find pre-freeze state for player {} ({}). Player will be set to a default state", player.getName(), player.getUniqueId());
@@ -445,9 +484,9 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
         this.preFreezeStateDao.delete(player.getUniqueId());
 
         // Restore passengers
-        ArrayList<Entity> playerPassengers = new ArrayList<>(player.getPassengers());
+        final ArrayList<Entity> playerPassengers = new ArrayList<>(player.getPassengers());
         while (!playerPassengers.isEmpty()) {
-            Entity passenger = playerPassengers.removeFirst();
+            final Entity passenger = playerPassengers.removeFirst();
             if (passenger instanceof Player) continue;
 
             passenger.removeScoreboardTag(FROZEN_SCOREBOARD_TAG);
@@ -455,7 +494,7 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
         }
     }
 
-    private void reaffirmFreezeState(Player player) {
+    private void reaffirmFreezeState(final Player player) {
         // To the client, the player should never be in a vehicle, but if a client sent vehicle packets they would still be able to move. Thus, we send these to be safe.
         if (player.isInsideVehicle()) {
             final Location vehicleLocation = player.getVehicle().getLocation();
@@ -477,11 +516,11 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
         }
     }
 
-    private void setPlayerFreezeState(Player player) {
-        ArrayList<Entity> passengers = new ArrayList<>(player.getPassengers());
-        configureVirtualSpectator(player);
+    private void setPlayerFreezeState(final Player player) {
+        final ArrayList<Entity> passengers = new ArrayList<>(player.getPassengers());
+        this.configureVirtualSpectator(player);
         while (!passengers.isEmpty()) {
-            Entity passenger = passengers.removeFirst();
+            final Entity passenger = passengers.removeFirst();
             if (passenger instanceof Player) continue;
 
             passenger.addScoreboardTag(FROZEN_SCOREBOARD_TAG);
@@ -496,17 +535,17 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
                 .forEach(mob -> mob.setTarget(null));
 
         if (player.isInsideVehicle() && player.getVehicle().getPassengers().getFirst() == player) {
-            setEntityFreezeState(player.getVehicle());
+            this.setEntityFreezeState(player.getVehicle());
 
-            WrapperPlayServerSetPassengers playerSetPassengersPacket = new WrapperPlayServerSetPassengers(player.getVehicle().getEntityId(), new int[]{});
+            final WrapperPlayServerSetPassengers playerSetPassengersPacket = new WrapperPlayServerSetPassengers(player.getVehicle().getEntityId(), new int[]{});
             PacketEvents.getAPI().getPlayerManager().sendPacket(player, playerSetPassengersPacket);
         }
 
         player.closeInventory(InventoryCloseEvent.Reason.CANT_USE);
-        setEntityFreezeState(player);
+        this.setEntityFreezeState(player);
     }
 
-    private void setEntityFreezeState(Entity entity) {
+    private void setEntityFreezeState(final Entity entity) {
         this.preFreezeStateDao.insert(PreFreezeState.of(entity));
 
         entity.addScoreboardTag(FROZEN_SCOREBOARD_TAG);
@@ -515,11 +554,11 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
         entity.setSilent(true);
         entity.setGravity(false);
 
-        if (entity instanceof LivingEntity livingEntity) {
+        if (entity instanceof final LivingEntity livingEntity) {
             livingEntity.setNextArrowRemoval(Integer.MAX_VALUE);
             livingEntity.setNextBeeStingerRemoval(Integer.MAX_VALUE);
 
-            if (livingEntity instanceof Player player) {
+            if (livingEntity instanceof final Player player) {
                 player.setFreezeTicks(player.getMaxFreezeTicks());
                 player.lockFreezeTicks(true);
                 player.setSleepingIgnored(true);
@@ -527,8 +566,8 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
         }
     }
 
-    private boolean isEntityFrozen(Entity entity) {
-        if (entity instanceof Player player) return isPlayerFrozen(player);
+    private boolean isEntityFrozen(final Entity entity) {
+        if (entity instanceof final Player player) return this.isPlayerFrozen(player);
 
         return entity.getScoreboardTags().contains(FROZEN_SCOREBOARD_TAG);
     }
@@ -538,8 +577,8 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
      *
      * @param player the player to configure
      */
-    private void configureVirtualSpectator(Player player) {
-        WrapperPlayServerSpawnEntity spawnEntityPacket = new WrapperPlayServerSpawnEntity(BLOCK_DISPLAY_ENTITY_ID,
+    private void configureVirtualSpectator(final Player player) {
+        final WrapperPlayServerSpawnEntity spawnEntityPacket = new WrapperPlayServerSpawnEntity(BLOCK_DISPLAY_ENTITY_ID,
                 UUID.randomUUID(),
                 EntityTypes.BLOCK_DISPLAY,
                 PacketEventsUtil.toPacketEventsLocation(player.getEyeLocation()),
@@ -548,28 +587,28 @@ public final class FreezeManager implements IFreezeManager, Listener , PacketLis
                 null);
         PacketEvents.getAPI().getPlayerManager().sendPacket(player, spawnEntityPacket);
 
-        EntityData<Boolean> hasNoGravityEntityData = new EntityData<>(5, EntityDataTypes.BOOLEAN, true);
-        WrapperPlayServerEntityMetadata entityMetadataPacket = new WrapperPlayServerEntityMetadata(BLOCK_DISPLAY_ENTITY_ID, List.of(hasNoGravityEntityData));
+        final EntityData<Boolean> hasNoGravityEntityData = new EntityData<>(5, EntityDataTypes.BOOLEAN, true);
+        final WrapperPlayServerEntityMetadata entityMetadataPacket = new WrapperPlayServerEntityMetadata(BLOCK_DISPLAY_ENTITY_ID, List.of(hasNoGravityEntityData));
         PacketEvents.getAPI().getPlayerManager().sendPacket(player, entityMetadataPacket);
 
-        WrapperPlayServerChangeGameState gameStatePacket = new WrapperPlayServerChangeGameState(WrapperPlayServerChangeGameState.Reason.CHANGE_GAME_MODE, GameMode.SPECTATOR.getId());
+        final WrapperPlayServerChangeGameState gameStatePacket = new WrapperPlayServerChangeGameState(WrapperPlayServerChangeGameState.Reason.CHANGE_GAME_MODE, GameMode.SPECTATOR.getId());
         PacketEvents.getAPI().getPlayerManager().sendPacket(player, gameStatePacket);
 
         // Tell the client to spectate the block display
-        WrapperPlayServerCamera setCameraPacket = new WrapperPlayServerCamera(BLOCK_DISPLAY_ENTITY_ID);
+        final WrapperPlayServerCamera setCameraPacket = new WrapperPlayServerCamera(BLOCK_DISPLAY_ENTITY_ID);
         PacketEvents.getAPI().getPlayerManager().sendPacket(player, setCameraPacket);
     }
 
-    private void removeVirtualSpectator(Player player) {
-        WrapperPlayServerDestroyEntities destroyEntitiesPacket = new WrapperPlayServerDestroyEntities(BLOCK_DISPLAY_ENTITY_ID);
+    private void removeVirtualSpectator(final Player player) {
+        final WrapperPlayServerDestroyEntities destroyEntitiesPacket = new WrapperPlayServerDestroyEntities(BLOCK_DISPLAY_ENTITY_ID);
         PacketEvents.getAPI().getPlayerManager().sendPacket(player, destroyEntitiesPacket);
 
         //
-        WrapperPlayServerCamera camera = new WrapperPlayServerCamera(player.getEntityId());
+        final WrapperPlayServerCamera camera = new WrapperPlayServerCamera(player.getEntityId());
         PacketEvents.getAPI().getPlayerManager().sendPacket(player, camera);
 
         // Set to spectator
-        WrapperPlayServerChangeGameState gameStatePacket = new WrapperPlayServerChangeGameState(WrapperPlayServerChangeGameState.Reason.CHANGE_GAME_MODE, player.getGameMode().getValue());
+        final WrapperPlayServerChangeGameState gameStatePacket = new WrapperPlayServerChangeGameState(WrapperPlayServerChangeGameState.Reason.CHANGE_GAME_MODE, player.getGameMode().getValue());
         PacketEvents.getAPI().getPlayerManager().sendPacket(player, gameStatePacket);
     }
 }

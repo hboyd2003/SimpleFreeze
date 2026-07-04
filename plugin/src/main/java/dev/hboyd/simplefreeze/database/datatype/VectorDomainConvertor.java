@@ -29,7 +29,7 @@ import java.nio.DoubleBuffer;
 public class VectorDomainConvertor implements DomainConverter<Vector, byte[]> {
 
     @Override
-    public byte[] fromDomainToValue(Vector vector) {
+    public byte[] fromDomainToValue(final Vector vector) {
         return ByteBuffer.allocate(24)
                 .putDouble(vector.getX())
                 .putDouble(vector.getY())
@@ -38,8 +38,8 @@ public class VectorDomainConvertor implements DomainConverter<Vector, byte[]> {
     }
 
     @Override
-    public Vector fromValueToDomain(byte[] value) {
-        DoubleBuffer doubleBuffer = ByteBuffer.wrap(value).asDoubleBuffer();
+    public Vector fromValueToDomain(final byte[] value) {
+        final DoubleBuffer doubleBuffer = ByteBuffer.wrap(value).asDoubleBuffer();
         return new Vector(doubleBuffer.get(0),
                 doubleBuffer.get(1),
                 doubleBuffer.get(2));

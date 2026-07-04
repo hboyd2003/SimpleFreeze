@@ -23,7 +23,8 @@ import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.Nullable;
-import org.seasar.doma.*;
+import org.seasar.doma.Entity;
+import org.seasar.doma.Table;
 import org.seasar.doma.jdbc.entity.NamingType;
 
 import java.time.Instant;
@@ -40,7 +41,7 @@ public class FreezeEntry {
     @ApiStatus.Internal
     FreezeEntry() {}
 
-    public FreezeEntry(UUID playerUuid, Key entryKey, @Nullable Component title) {
+    public FreezeEntry(final UUID playerUuid, final Key entryKey, @Nullable final Component title) {
         this.playerUuid = playerUuid;
         this.entryKey = entryKey;
         this.title = title;
@@ -51,7 +52,7 @@ public class FreezeEntry {
         return this.playerUuid;
     }
 
-    public void playerUuid(UUID uuid) {
+    public void playerUuid(final UUID uuid) {
         this.playerUuid = uuid;
     }
 
@@ -59,7 +60,7 @@ public class FreezeEntry {
         return this.entryKey;
     }
 
-    public void entryKey(Key key) {
+    public void entryKey(final Key key) {
         this.entryKey = key;
     }
 
@@ -67,7 +68,7 @@ public class FreezeEntry {
         return this.title;
     }
 
-    public void title(@Nullable Component title) {
+    public void title(@Nullable final Component title) {
         this.title = title;
     }
 

@@ -32,7 +32,6 @@ import dev.hboyd.prismatic.brigadier.argument.CustomOfflinePlayerArgument;
 import dev.hboyd.prismatic.brigadier.argument.CustomOfflinePlayerArgumentResolver;
 import dev.hboyd.simplefreeze.FreezeManager;
 import dev.hboyd.simplefreeze.ISimpleFreeze;
-import dev.hboyd.simplefreeze.SimpleFreeze;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import net.kyori.adventure.key.Key;
@@ -45,7 +44,9 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class FreezeCommands implements BrigadierCommand {
@@ -59,8 +60,8 @@ public class FreezeCommands implements BrigadierCommand {
     private final LiteralCommandNode<CommandSourceStack> freezeCommand;
     private final LiteralCommandNode<CommandSourceStack> unfreezeCommand;
 
-    public FreezeCommands(FreezeManager freezeManager) {
-        CustomOfflinePlayerArgument unfrozenPlayersArgument = new CustomOfflinePlayerArgument(
+    public FreezeCommands(final FreezeManager freezeManager) {
+        final CustomOfflinePlayerArgument unfrozenPlayersArgument = new CustomOfflinePlayerArgument(
                 offlinePlayer -> !freezeManager.frozenPlayers(FREEZE_ENTRY_KEY).contains(offlinePlayer),
                 false,
                 PLAYER_ALREADY_FROZEN_EXCEPTION);
@@ -83,7 +84,7 @@ public class FreezeCommands implements BrigadierCommand {
     }
 
     @Override
-    public void register(Commands registrar) {
+    public void register(final Commands registrar) {
         registrar.register(this.freezeCommand, "Freezes one or more players with an optional MiniMessage title displayed");
         registrar.register(this.unfreezeCommand, "Unfreezes one or more players optionally force unfreezing them settings the player to a default state.");
     }
@@ -93,14 +94,13 @@ public class FreezeCommands implements BrigadierCommand {
         return List.of();
     }
 
-
-    private int freezePlayer(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
+    private int freezePlayer(final CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
         final Collection<OfflinePlayer> players = commandContext.getArgument("players", CustomOfflinePlayerArgumentResolver.class)
                 .resolve(commandContext.getSource());
 
         players.forEach(player -> this.freezeManager.addFreezeEntry(player, FREEZE_ENTRY_KEY));
 
-        sendFeedback(commandContext,
+        this.sendFeedback(commandContext,
                 "simplefreeze.command.freeze.froze_player",
                 "simplefreeze.command.freeze.froze_players",
                 players);
@@ -108,14 +108,14 @@ public class FreezeCommands implements BrigadierCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private int freezePlayerWithTitle(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
+    private int freezePlayerWithTitle(final CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
         final Collection<OfflinePlayer> players = commandContext.getArgument("players", CustomOfflinePlayerArgumentResolver.class)
                 .resolve(commandContext.getSource());
         final Component titleComponent = MiniMessage.miniMessage().deserialize(commandContext.getArgument("title", String.class));
 
         players.forEach(player -> this.freezeManager.addFreezeEntry(player, FREEZE_ENTRY_KEY, titleComponent));
 
-        sendFeedback(commandContext,
+        this.sendFeedback(commandContext,
                 "simplefreeze.command.freeze.froze_player",
                 "simplefreeze.command.freeze.froze_players",
                 players);
@@ -123,11 +123,11 @@ public class FreezeCommands implements BrigadierCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private int unfreezePlayer(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
+    private int unfreezePlayer(final CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
         final Collection<OfflinePlayer> players = commandContext.getArgument("players", CustomOfflinePlayerArgumentResolver.class)
                 .resolve(commandContext.getSource());
 
-        List<OfflinePlayer> filteredPlayers = players.stream()
+        final List<OfflinePlayer> filteredPlayers = players.stream()
                 .filter(player -> this.freezeManager.getFreezeEntries(player).contains(FREEZE_ENTRY_KEY))
                 .toList();
 
@@ -136,9 +136,9 @@ public class FreezeCommands implements BrigadierCommand {
         int maxEntries = 0;
         boolean sameEntries = true;
         Set<Key> firstFreezeEntries = null;
-        for (OfflinePlayer player : filteredPlayers) {
+        for (final OfflinePlayer player : filteredPlayers) {
             this.freezeManager.removeFreezeEntry(player, FREEZE_ENTRY_KEY);
-            Set<Key> freezeEntries = this.freezeManager.getFreezeEntries(player);
+            final Set<Key> freezeEntries = this.freezeManager.getFreezeEntries(player);
 
             if (firstFreezeEntries == null) firstFreezeEntries = Set.copyOf(freezeEntries);
             else if (sameEntries)
@@ -157,7 +157,7 @@ public class FreezeCommands implements BrigadierCommand {
             playerArgument = Argument.numeric("player_count", filteredPlayers.size());
         } else {
             translationKey += ".";
-            playerArgument = Argument.component("player_name", getPlayerComponent(filteredPlayers.getFirst()));
+            playerArgument = Argument.component("player_name", this.getPlayerComponent(filteredPlayers.getFirst()));
         }
 
         if (maxEntries == 0) {
@@ -174,8 +174,7 @@ public class FreezeCommands implements BrigadierCommand {
                                 .collect(Collectors.joining(", ")))));
             if (!sameEntries) translationKey += "ambiguous";
             else translationKey += "multiple";
-        }
-        else {
+        } else {
             freezeEntryArgument = Argument.string("freeze_entry_key", firstFreezeEntries.iterator().next().asString());
             translationKey += "single";
         }
@@ -185,16 +184,16 @@ public class FreezeCommands implements BrigadierCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private int unfreezePlayerForceable(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
+    private int unfreezePlayerForceable(final CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
         final Collection<OfflinePlayer> players = commandContext.getArgument("players", CustomOfflinePlayerArgumentResolver.class)
                 .resolve(commandContext.getSource());
         final boolean force = commandContext.getArgument("force", Boolean.class);
 
-        if (!force) return unfreezePlayer(commandContext);
+        if (!force) return this.unfreezePlayer(commandContext);
 
         players.forEach(this.freezeManager::forceUnfreezePlayer);
 
-        sendFeedback(commandContext,
+        this.sendFeedback(commandContext,
                 "simplefreeze.command.unfreeze.force.unfroze_player",
                 "simplefreeze.command.unfreeze.force.unfroze_players",
                 players);
@@ -202,15 +201,15 @@ public class FreezeCommands implements BrigadierCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private void sendFeedback(CommandContext<CommandSourceStack> commandContext, String singularKey, String pluralKey, Collection<OfflinePlayer> offlinePlayers) {
+    private void sendFeedback(final CommandContext<CommandSourceStack> commandContext, final String singularKey, final String pluralKey, final Collection<OfflinePlayer> offlinePlayers) {
         if (offlinePlayers.size() > 1)
             CommandUtil.sendTranslatableResponse(commandContext, pluralKey,
                     Argument.numeric("player_count", offlinePlayers.size()));
         else CommandUtil.sendTranslatableResponse(commandContext, singularKey,
-                    Argument.component("player_name", getPlayerComponent(offlinePlayers.iterator().next())));
+                    Argument.component("player_name", this.getPlayerComponent(offlinePlayers.iterator().next())));
     }
 
-    private Component getPlayerComponent(OfflinePlayer offlinePlayer) {
+    private Component getPlayerComponent(final OfflinePlayer offlinePlayer) {
         final Player player = offlinePlayer.getPlayer();
         final HoverEventSource<?> playerHoverEventSource;
         if (player != null) playerHoverEventSource = player;

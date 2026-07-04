@@ -28,16 +28,16 @@ import java.util.UUID;
 public class UUIDDomainConverter implements DomainConverter<UUID, byte[]> {
 
     @Override
-    public byte[] fromDomainToValue(UUID uuid) {
-        ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
+    public byte[] fromDomainToValue(final UUID uuid) {
+        final ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
         bb.putLong(uuid.getMostSignificantBits());
         bb.putLong(uuid.getLeastSignificantBits());
         return bb.array();
     }
 
     @Override
-    public UUID fromValueToDomain(byte[] value) {
-        ByteBuffer byteBuffer = ByteBuffer.wrap(value);
+    public UUID fromValueToDomain(final byte[] value) {
+        final ByteBuffer byteBuffer = ByteBuffer.wrap(value);
         return new UUID(byteBuffer.getLong(), byteBuffer.getLong());
     }
 }

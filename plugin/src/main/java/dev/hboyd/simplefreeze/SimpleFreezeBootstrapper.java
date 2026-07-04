@@ -26,10 +26,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 @SuppressWarnings({"unused", "UnstableApiUsage"})
 public class SimpleFreezeBootstrapper implements PluginBootstrap {
     @Override
-    public void bootstrap(BootstrapContext context) {}
+    public void bootstrap(final BootstrapContext context) {}
 
     @Override
-    public JavaPlugin createPlugin(PluginProviderContext context) {
+    public JavaPlugin createPlugin(final PluginProviderContext context) {
         return SimpleFreeze.INSTANCE;
     }
 }

@@ -20,9 +20,17 @@ package dev.hboyd.simplefreeze.database;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
-import org.seasar.doma.*;
+import org.seasar.doma.Dao;
+import org.seasar.doma.Delete;
+import org.seasar.doma.Insert;
+import org.seasar.doma.Script;
+import org.seasar.doma.Select;
+import org.seasar.doma.Sql;
+import org.seasar.doma.Update;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Dao
 public interface FreezeEntryDao {
@@ -76,7 +84,6 @@ public interface FreezeEntryDao {
              ORDER BY added DESC
             """)
     List<Key> getKeys(UUID playerUuid);
-
 
     @Select
     @Sql("""

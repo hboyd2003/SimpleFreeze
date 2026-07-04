@@ -27,7 +27,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.util.Vector;
-import org.jetbrains.annotations.ApiStatus;
 import org.seasar.doma.Id;
 import org.seasar.doma.jdbc.entity.NamingType;
 
@@ -66,24 +65,24 @@ public final class PreFreezeState {
 
     PreFreezeState() {}
 
-    public void setWith(Entity entity) {
+    public void setWith(final Entity entity) {
         this.uuid = entity.getUniqueId();
         this.velocity = entity.getVelocity();
         this.fireTicks = entity.getFireTicks();
         this.fallDistance = entity.getFallDistance();
-        this.freezeTickingLocked =  entity.isFreezeTickingLocked();
+        this.freezeTickingLocked = entity.isFreezeTickingLocked();
         this.freezeTicks = entity.getFreezeTicks();
         this.silent = entity.isSilent();
         this.noPhysics = entity.hasNoPhysics();
         this.hasGravity = entity.hasGravity();
 
-        if (entity instanceof LivingEntity livingEntity) {
+        if (entity instanceof final LivingEntity livingEntity) {
             this.potionEffectsJson = POTION_EFFECT_LIST_CONVERTER.toJson(livingEntity.getActivePotionEffects());
             this.noDamageTicks = livingEntity.getNoDamageTicks();
             this.nextArrowRemoval = livingEntity.getNextArrowRemoval();
             this.nextBeeStingerRemoval = livingEntity.getNextBeeStingerRemoval();
 
-            if (livingEntity instanceof Player player) {
+            if (livingEntity instanceof final Player player) {
                 this.sleepingIgnored = player.isSleepingIgnored();
                 this.wardenWarningLevel = player.getWardenWarningLevel();
                 this.wardenWarningCooldown = player.getWardenWarningCooldown();
@@ -92,7 +91,7 @@ public final class PreFreezeState {
         }
     }
 
-    public void restoreTo(Entity entity) {
+    public void restoreTo(final Entity entity) {
         entity.setVelocity(this.velocity);
         entity.setFireTicks(this.fireTicks);
         entity.setFallDistance(this.fallDistance);
@@ -102,14 +101,14 @@ public final class PreFreezeState {
         entity.setNoPhysics(this.noPhysics);
         entity.setGravity(this.hasGravity);
 
-        if (entity instanceof LivingEntity livingEntity) {
+        if (entity instanceof final LivingEntity livingEntity) {
             livingEntity.clearActivePotionEffects();
             livingEntity.addPotionEffects(POTION_EFFECT_LIST_CONVERTER.fromJson(this.potionEffectsJson));
             livingEntity.setNoDamageTicks(this.noDamageTicks);
             livingEntity.setNextArrowRemoval(this.nextArrowRemoval);
             livingEntity.setNextBeeStingerRemoval(this.nextBeeStingerRemoval);
 
-            if (livingEntity instanceof Player player) {
+            if (livingEntity instanceof final Player player) {
                 player.setSleepingIgnored(this.sleepingIgnored);
                 player.setWardenWarningLevel(this.wardenWarningLevel);
                 player.setWardenWarningCooldown(this.wardenWarningCooldown);
@@ -118,14 +117,14 @@ public final class PreFreezeState {
         }
     }
 
-    public static PreFreezeState of(Entity entity) {
-        PreFreezeState preFreezeState = new PreFreezeState();
+    public static PreFreezeState of(final Entity entity) {
+        final PreFreezeState preFreezeState = new PreFreezeState();
         preFreezeState.setWith(entity);
         return preFreezeState;
     }
 
-    public static PreFreezeState defaultOf(Entity entity) {
-        PreFreezeState preFreezeState = new PreFreezeState();
+    public static PreFreezeState defaultOf(final Entity entity) {
+        final PreFreezeState preFreezeState = new PreFreezeState();
 
         preFreezeState.uuid = entity.getUniqueId();
         preFreezeState.velocity = new Vector();
@@ -137,13 +136,13 @@ public final class PreFreezeState {
         preFreezeState.noPhysics = false;
         preFreezeState.hasGravity = true;
 
-        if (entity instanceof LivingEntity livingEntity) {
+        if (entity instanceof final LivingEntity livingEntity) {
             preFreezeState.potionEffectsJson = new JsonArray();
             preFreezeState.noDamageTicks = 0;
             preFreezeState.nextArrowRemoval = 0;
             preFreezeState.nextBeeStingerRemoval = 0;
 
-            if (livingEntity instanceof Player)  {
+            if (livingEntity instanceof Player) {
                 preFreezeState.sleepingIgnored = false;
                 preFreezeState.wardenWarningLevel = 0;
                 preFreezeState.wardenWarningCooldown = 0;

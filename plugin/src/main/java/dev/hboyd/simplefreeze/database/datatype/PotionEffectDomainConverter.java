@@ -39,8 +39,8 @@ public class PotionEffectDomainConverter implements JsonDomainConverter<PotionEf
     private static final String HIDDEN_EFFECT_KEY = "hidden_effect";
 
     @Override
-    public JsonElement toJson(PotionEffect potionEffect) {
-        JsonObject potionEffectJson = new JsonObject();
+    public JsonElement toJson(final PotionEffect potionEffect) {
+        final JsonObject potionEffectJson = new JsonObject();
 
         potionEffectJson.add(TYPE_KEY, new JsonPrimitive(potionEffect.getType().key().toString()));
         potionEffectJson.add(DURATION_KEY, new JsonPrimitive(potionEffect.getDuration()));
@@ -50,17 +50,17 @@ public class PotionEffectDomainConverter implements JsonDomainConverter<PotionEf
         potionEffectJson.add(ICON_KEY, new JsonPrimitive(potionEffect.hasIcon()));
 
         if (potionEffect.getHiddenPotionEffect() != null)
-            potionEffectJson.add(HIDDEN_EFFECT_KEY, toJson(potionEffect.getHiddenPotionEffect()));
+            potionEffectJson.add(HIDDEN_EFFECT_KEY, this.toJson(potionEffect.getHiddenPotionEffect()));
 
         return potionEffectJson;
     }
 
     @Override
     @SuppressWarnings("PatternValidation")
-    public PotionEffect fromJson(JsonElement element) {
+    public PotionEffect fromJson(final JsonElement element) {
         if (element == null) return null;
-        JsonObject jsonObject = element.getAsJsonObject();
-        Key effectKey = Key.key(jsonObject.getAsJsonPrimitive(TYPE_KEY).getAsString());
+        final JsonObject jsonObject = element.getAsJsonObject();
+        final Key effectKey = Key.key(jsonObject.getAsJsonPrimitive(TYPE_KEY).getAsString());
         //noinspection UnstableApiUsage
         return new PotionEffect(Registry.MOB_EFFECT.get(effectKey),
                 jsonObject.getAsJsonPrimitive(DURATION_KEY).getAsInt(),

@@ -32,18 +32,18 @@ public class SimpleFreezeConfig extends PaperConfig {
     private static final String CONFIG_VERSION = "1";
 
     @Required
-    private DatabaseConfig databaseConfig = new DatabaseConfig(DatabaseConfig.DatabaseType.SQLITE, null);
+    private final DatabaseConfig databaseConfig = new DatabaseConfig(DatabaseConfig.DatabaseType.SQLITE, null);
 
     @Required
     @Comment("Forces all players to dismount when the controlling player disconnects saving the rode entity with the disconnecting player")
-    private boolean alwaysDisconnectWithEntity = true;
+    private final boolean alwaysDisconnectWithEntity = true;
 
     @Required
     @Comment("DO NOT CHANGE THIS VALUE")
-    private String configVersion = CONFIG_VERSION;
+    private final String configVersion = CONFIG_VERSION;
 
-    public SimpleFreezeConfig(Path configFilePath) throws IOException {
-        initialize(configFilePath);
+    public SimpleFreezeConfig(final Path configFilePath) throws IOException {
+        this.initialize(configFilePath);
     }
 
     public DatabaseConfig databaseConfig() {

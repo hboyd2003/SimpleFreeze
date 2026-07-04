@@ -18,7 +18,12 @@
 
 package dev.hboyd.simplefreeze.database;
 
-import org.seasar.doma.*;
+import org.seasar.doma.Dao;
+import org.seasar.doma.Delete;
+import org.seasar.doma.Insert;
+import org.seasar.doma.Script;
+import org.seasar.doma.Select;
+import org.seasar.doma.Sql;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -52,7 +57,6 @@ public interface PreFreezeStateDao {
             );
             """)
     void createIfNotExists();
-
 
     @Sql("""
             SELECT /*%expand*/*

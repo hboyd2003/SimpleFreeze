@@ -27,12 +27,12 @@ import org.seasar.doma.jdbc.domain.DomainConverter;
 @ExternalDomain
 public class JsonElementDomainConverter implements DomainConverter<JsonElement, String> {
     @Override
-    public String fromDomainToValue(JsonElement element) {
+    public String fromDomainToValue(final JsonElement element) {
         return element.toString();
     }
 
     @Override
-    public JsonElement fromValueToDomain(String value) {
+    public JsonElement fromValueToDomain(final String value) {
         if (value == null) return JsonNull.INSTANCE;
         return new Gson().fromJson(value, JsonElement.class);
     }

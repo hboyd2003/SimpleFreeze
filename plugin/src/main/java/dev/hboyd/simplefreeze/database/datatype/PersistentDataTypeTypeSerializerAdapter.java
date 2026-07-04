@@ -38,11 +38,11 @@ public class PersistentDataTypeTypeSerializerAdapter<C> implements PersistentDat
     private final NBTConfigurationLoader nbtLoader;
     private final ObjectMapper<C> objectMapper;
 
-    public PersistentDataTypeTypeSerializerAdapter(Class<C> type) {
+    public PersistentDataTypeTypeSerializerAdapter(final Class<C> type) {
         this(type, null);
     }
 
-    public PersistentDataTypeTypeSerializerAdapter(Class<C> type, @Nullable TypeSerializerCollection serializers) {
+    public PersistentDataTypeTypeSerializerAdapter(final Class<C> type, @Nullable final TypeSerializerCollection serializers) {
         this.type = type;
         this.nbtLoader = NBTConfigurationLoader.builder()
                 .defaultOptions(options -> {
@@ -60,7 +60,7 @@ public class PersistentDataTypeTypeSerializerAdapter<C> implements PersistentDat
                     .defaultNamingScheme(NamingSchemes.CAMEL_CASE)
                     .build()
                     .get(type);
-        } catch (SerializationException e) {
+        } catch (final SerializationException e) {
             throw new RuntimeException(e);
         }
     }
@@ -76,16 +76,16 @@ public class PersistentDataTypeTypeSerializerAdapter<C> implements PersistentDat
     }
 
     @Override
-    public PersistentDataContainer toPrimitive(C complex, PersistentDataAdapterContext context) {
-        PersistentDataContainer pdc = context.newPersistentDataContainer();
+    public PersistentDataContainer toPrimitive(final C complex, final PersistentDataAdapterContext context) {
+        final PersistentDataContainer pdc = context.newPersistentDataContainer();
 
         try {
-            BasicConfigurationNode node = this.nbtLoader.createNode();
+            final BasicConfigurationNode node = this.nbtLoader.createNode();
             this.objectMapper.save(complex, node);
             pdc.readFromBytes(this.nbtLoader.saveToBytes(node));
-        } catch (SerializationException e) {
+        } catch (final SerializationException e) {
             throw new RuntimeException(e); // TODO: Correct exception
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RuntimeException(e);
         }
 
@@ -93,11 +93,11 @@ public class PersistentDataTypeTypeSerializerAdapter<C> implements PersistentDat
     }
 
     @Override
-    public C fromPrimitive(PersistentDataContainer pdc, PersistentDataAdapterContext context) {
+    public C fromPrimitive(final PersistentDataContainer pdc, final PersistentDataAdapterContext context) {
         try {
-            BasicConfigurationNode node = this.nbtLoader.loadFromBytes(pdc.serializeToBytes());
+            final BasicConfigurationNode node = this.nbtLoader.loadFromBytes(pdc.serializeToBytes());
             return this.objectMapper.load(node);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RuntimeException(e);
         }
     }

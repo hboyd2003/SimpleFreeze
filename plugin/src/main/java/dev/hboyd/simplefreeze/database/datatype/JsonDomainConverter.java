@@ -25,15 +25,15 @@ import org.seasar.doma.jdbc.domain.DomainConverter;
 public interface JsonDomainConverter<T> extends DomainConverter<T, String> {
 
     @Override
-    default String fromDomainToValue(T object) {
-        return toJson(object).toString();
+    default String fromDomainToValue(final T object) {
+        return this.toJson(object).toString();
     }
 
     JsonElement toJson(T value);
 
     @Override
-    default T fromValueToDomain(String value) {
-        return fromJson(new Gson().fromJson(value, JsonElement.class));
+    default T fromValueToDomain(final String value) {
+        return this.fromJson(new Gson().fromJson(value, JsonElement.class));
     }
 
     T fromJson(JsonElement element);

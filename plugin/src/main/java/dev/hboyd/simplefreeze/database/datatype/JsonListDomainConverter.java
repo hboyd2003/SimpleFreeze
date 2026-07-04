@@ -29,19 +29,19 @@ import java.util.List;
 public class JsonListDomainConverter<A, T extends DomainConverter<A, String>> {
     private final T converter;
 
-    public JsonListDomainConverter(T converter) {
+    public JsonListDomainConverter(final T converter) {
         this.converter = converter;
     }
 
-    public JsonElement toJson(Collection<A> complex) {
-        JsonArray jsonArray = new JsonArray();
+    public JsonElement toJson(final Collection<A> complex) {
+        final JsonArray jsonArray = new JsonArray();
         complex.forEach(item -> jsonArray.add(new Gson().fromJson(this.converter.fromDomainToValue(item), JsonElement.class)));
         return jsonArray;
     }
 
-    public Collection<A> fromJson(JsonElement element) {
+    public Collection<A> fromJson(final JsonElement element) {
         if (element == null) return List.of();
-        JsonArray jsonArray = element.getAsJsonArray();
+        final JsonArray jsonArray = element.getAsJsonArray();
         return jsonArray.asList().stream()
                 .map(JsonElement::toString)
                 .map(this.converter::fromValueToDomain)

@@ -25,7 +25,9 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Unmodifiable;
 import org.jspecify.annotations.Nullable;
 
-import java.util.*;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Manages player and their freeze state.
@@ -99,7 +101,7 @@ public interface IFreezeManager {
      * @return true if the player has an entry with the key otherwise false
      * @throws IllegalStateException if the player has no state to restore to when being fully unfrozen
      */
-    boolean removeFreezeEntry(OfflinePlayer offlinePlayer, Key entryKey) throws IllegalStateException ;
+    boolean removeFreezeEntry(OfflinePlayer offlinePlayer, Key entryKey) throws IllegalStateException;
 
     /**
      * Removes all freeze entries from the given player.

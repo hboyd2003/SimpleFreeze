@@ -73,27 +73,26 @@ public final class SimpleFreeze extends JavaPlugin implements ISimpleFreeze {
 
         try {
             this.simpleFreezeConfig = new SimpleFreezeConfig(this.getDataPath().resolve("config.conf"));
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RuntimeException("Failed to load configuration file", e);
         }
 
-        this.freezeManager = new FreezeManager(buildDomaConfiguration(), this.simpleFreezeConfig.alwaysDisconnectWithEntity());
+        this.freezeManager = new FreezeManager(this.buildDomaConfiguration(), this.simpleFreezeConfig.alwaysDisconnectWithEntity());
         Bukkit.getPluginManager().registerEvents(this.freezeManager, this);
 
         // Commands
         this.freezeCommands = new FreezeCommands(this.freezeManager);
         this.simpleFreezeCommand = new SimpleFreezeCommand(this);
 
-        this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event ->
-        {
+        this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
             this.freezeCommands.register(event.registrar());
             this.simpleFreezeCommand.register(event.registrar());
         });
 
         // Translations
-        MiniMessageTranslationStore translationStore = MiniMessageTranslationStore.create(Key.key(this, "lang"));
+        final MiniMessageTranslationStore translationStore = MiniMessageTranslationStore.create(Key.key(this, "lang"));
 
-        ResourceBundle bundle = ResourceBundle.getBundle("dev.hboyd.simplefreeze.lang", Locale.US);
+        final ResourceBundle bundle = ResourceBundle.getBundle("dev.hboyd.simplefreeze.lang", Locale.US);
         translationStore.registerAll(Locale.US, bundle, false);
 
         GlobalTranslator.translator().addSource(translationStore);
@@ -120,35 +119,34 @@ public final class SimpleFreeze extends JavaPlugin implements ISimpleFreeze {
     }
 
     @Override
-    public HoverEvent<Component> asHoverEvent(UnaryOperator<Component> op) {
+    public HoverEvent<Component> asHoverEvent(final UnaryOperator<Component> op) {
         return HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT, op.apply(Component.text("v" + this.getPluginMeta().getVersion())));
     }
 
     private SimpleConfig buildDomaConfiguration() {
-        DataSource dataSource;
+        final DataSource dataSource;
         try {
             dataSource = switch (this.simpleFreezeConfig.databaseConfig().databaseType()) {
                 case MYSQL -> new MysqlDataSource();
                 case SQLITE -> {
-                    SQLiteDataSource sqLiteDataSource = new SQLiteDataSource();
+                    final SQLiteDataSource sqLiteDataSource = new SQLiteDataSource();
                     sqLiteDataSource.setUrl(Optional.ofNullable(this.simpleFreezeConfig.databaseConfig().jdbcURI())
                             .map(URI::toString)
-                            .orElse(JDBC.PREFIX + getDataPath().resolve("database.sqlite")));
+                            .orElse(JDBC.PREFIX + this.getDataPath().resolve("database.sqlite")));
                     yield sqLiteDataSource;
                 }
                 case MARIADB ->
-                        new MariaDbDataSource(Optional.ofNullable(this.simpleFreezeConfig.databaseConfig().jdbcURI()).orElseThrow().toString());
+                    new MariaDbDataSource(Optional.ofNullable(this.simpleFreezeConfig.databaseConfig().jdbcURI()).orElseThrow().toString());
             };
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
             throw new RuntimeException("Failed to initialize database", e);
         }
 
-        Dialect dialect = switch (this.simpleFreezeConfig.databaseConfig().databaseType()) {
+        final Dialect dialect = switch (this.simpleFreezeConfig.databaseConfig().databaseType()) {
             case MYSQL, MARIADB -> new MysqlDialect();
             case SQLITE -> new SqliteDialect();
         };
 
         return SimpleConfig.builder(dataSource, dialect).jdbcLogger(new Slf4jJdbcLogger()).build();
     }
-
 }

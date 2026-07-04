@@ -22,17 +22,16 @@ import net.kyori.adventure.key.Key;
 import org.seasar.doma.ExternalDomain;
 import org.seasar.doma.jdbc.domain.DomainConverter;
 
-
 @ExternalDomain
 public class KeyDomainConverter implements DomainConverter<Key, String> {
 
     @Override
-    public String fromDomainToValue(Key key) {
+    public String fromDomainToValue(final Key key) {
         return key.asString();
     }
 
     @Override
-    public Key fromValueToDomain(String value) {
+    public Key fromValueToDomain(final String value) {
         if (value == null) return null;
         return Key.key(value);
     }
