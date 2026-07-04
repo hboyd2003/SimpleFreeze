@@ -18,6 +18,7 @@
 
 plugins {
     id("simplefreeze.common-conventions")
+    `java-library`
 }
 
 indra {
