@@ -8,6 +8,7 @@ runPaper = "3.0.2"
 paperLoaderGen = "1.0.1"
 indra = "4.0.0"
 checkstyle = "13.7.0"
+gitSimpleSemver = "2.3.0"
 
 # Libraries
 adventureAPI = "4.26.1"
@@ -35,6 +36,7 @@ gradleShadow = { id = "com.gradleup.shadow", version.ref = "gradleShadow" }
 paperweight = { id = "io.papermc.paperweight.userdev", version.ref = "paperweight" }
 runPaper = { id = "xyz.jpenilla.run-paper", version.ref = "runPaper" }
 paperLoaderGen = { id = "dev.hboyd.paper-loader-gen", version.ref = "paperLoaderGen" }
+gitSimpleSemver = { id = "dev.hboyd.git-simple-semver", version.ref = "gitSimpleSemver" }
 
 [libraries]
 paperAPI = { group = "io.papermc.paper", name = "paper-api", version.ref = "paperAPI" }
