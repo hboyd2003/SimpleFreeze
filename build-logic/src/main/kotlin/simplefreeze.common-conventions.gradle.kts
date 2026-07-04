@@ -20,38 +20,40 @@ val libs = extensions.getByType(org.gradle.accessors.dm.LibrariesForLibs::class)
 
 plugins {
     java
-    `maven-publish`
     idea
+    id("net.kyori.indra")
+    id("net.kyori.indra.publishing")
 }
 
 dependencies {
     compileOnly(libs.paperAPI)
     compileOnly(libs.adventureSerializerConfigurate4)
+    compileOnly(libs.indra)
 }
 
-val targetJavaVersion = 25
-java {
-    withJavadocJar()
-    withSourcesJar()
-
-    val javaVersion = JavaVersion.toVersion(targetJavaVersion)
-    sourceCompatibility = javaVersion
-    targetCompatibility = javaVersion
-    if (JavaVersion.current() < javaVersion) {
-        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+indra {
+    javaVersions {
+        target(25)
     }
-}
 
-publishing {
-    repositories {
-        maven {
-            credentials {
-                username = System.getenv("MAVEN_USERNAME")
-                password = System.getenv("MAVEN_PASSWORD")
+    github("hboyd2003", "SimpleFreeze") {
+        ci(true)
+        scm(true)
+        publishing(false)
+    }
+
+    lgpl3OrLaterLicense()
+
+    configurePublications {
+        pom {
+            developers {
+                developer {
+                    id.set("hboyd2003")
+                    name.set("Harrison Boyd")
+                    email.set("8950185+hboyd2003@users.noreply.github.com")
+                    timezone = "America/New_York"
+                }
             }
-
-            name = "hboyd-dev-repo"
-            url = uri("https://repo.hboyd.dev/" + (if (version.toString().contains("SNAPSHOT")) "snapshots/" else "releases/"))
         }
     }
 }

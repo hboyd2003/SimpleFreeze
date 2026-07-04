@@ -6,6 +6,7 @@ gradleShadow = "9.4.0"
 paperweight = "2.0.0-beta.19"
 runPaper = "3.0.2"
 paperLoaderGen = "1.0.1"
+indra = "4.0.0"
 
 # Libraries
 adventureAPI = "4.26.1"
@@ -68,6 +69,9 @@ prismaticPaper = { group = "dev.hboyd", name = "prismatic-paper", version.ref = 
 # Testing
 junitJupiterEngine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit" }
 junitPlatformLauncher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junit" }
+
+# Build
+indra = { module = "net.kyori:indra-common", version.ref = "indra" }
 
 [bundles]
 prismatic = [

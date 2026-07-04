@@ -31,6 +31,7 @@ dependencyResolutionManagement {
             name = "codemc-snapshots"
             mavenContent { snapshotsOnly() }
         }
+        gradlePluginPortal()
     }
 }
 
@@ -58,7 +59,6 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
-
 
 sequenceOf(
         "api",

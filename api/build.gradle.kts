@@ -20,10 +20,7 @@ plugins {
     id("simplefreeze.common-conventions")
 }
 
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
-        }
-    }
+indra {
+    publishReleasesTo("hboydDev", "https://repo.hboyd.dev/releases")
+    publishSnapshotsTo("hboydDev", "https://repo.hboyd.dev/snapshots")
 }
