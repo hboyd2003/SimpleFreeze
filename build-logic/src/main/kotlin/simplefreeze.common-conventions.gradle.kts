@@ -23,6 +23,7 @@ plugins {
     idea
     id("net.kyori.indra")
     id("net.kyori.indra.publishing")
+    id("net.kyori.indra.checkstyle")
 }
 
 dependencies {
@@ -56,6 +57,8 @@ indra {
             }
         }
     }
+
+    checkstyle(libs.versions.checkstyle.get())
 }
 
 idea {

@@ -74,7 +74,3 @@ http-client.private.env.json
 
 # Discord IntelliJ plugin
 .idea/**/discord.xml
-
-# Checkstyle IntelliJ Plugin
-.idea/**/checkstyle-idea.xml
-
