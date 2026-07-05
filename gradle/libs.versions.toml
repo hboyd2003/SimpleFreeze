@@ -75,6 +75,7 @@ junitPlatformLauncher = { group = "org.junit.platform", name = "junit-platform-l
 
 # Build
 indra = { module = "net.kyori:indra-common", version.ref = "indra" }
+indraLicenserSpotless = { module = "net.kyori:indra-licenser-spotless", version.ref = "indra" }
 
 [bundles]
 prismatic = [
@@ -94,4 +95,10 @@ configurate = [
 junitJupiterRuntime = [
     "junitJupiterEngine",
     "junitPlatformLauncher"
+]
+
+# Build
+indra = [
+    "indra",
+    "indraLicenserSpotless"
 ]
