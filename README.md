@@ -75,6 +75,7 @@ freezeManager.removeFreezeEntry(targetOfflinePlayer, key);
 
 ## Credits
 - **Harrison Boyd** – *Initial work* - [Hboyd2003](https://github.com/hboyd2003)
+- **azure_cd** – Icon
 
 ## License
 
