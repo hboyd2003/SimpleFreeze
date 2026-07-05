@@ -6,7 +6,7 @@ gradleShadow = "9.4.0"
 paperweight = "2.0.0-beta.19"
 runPaper = "3.0.2"
 paperLoaderGen = "1.0.1"
-indra = "4.0.0"
+indra = "4.1.0-SNAPSHOT"
 checkstyle = "13.7.0"
 gitSimpleSemver = "2.3.0"
 
