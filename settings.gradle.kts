@@ -31,6 +31,12 @@ dependencyResolutionManagement {
             name = "codemc-snapshots"
             mavenContent { snapshotsOnly() }
         }
+        maven(url = ".gradle/loom-cache/minecraftMaven") {
+            name = "LoomLocalMinecraft"
+        }
+        maven(url = ".gradle/loom-cache/remapped_mods") {
+            name = "LoomLocalRemappedMods"
+        }
         gradlePluginPortal()
     }
 }
@@ -56,13 +62,17 @@ pluginManagement {
             name = "hboyd-dev-repo-snapshots"
             mavenContent { snapshotsOnly() }
         }
+        maven(url = "https://maven.fabricmc.net/") {
+            name = "fabric"
+        }
         gradlePluginPortal()
     }
 }
 
 sequenceOf(
         "api",
-        "plugin"
+        "plugin",
+        "gametest"
 ).forEach {
     include("simplefreeze-$it")
     project(":simplefreeze-$it").projectDir = file(it)

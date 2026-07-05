@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "example-mod-test",
+  "version": "1.0.0",
+  "name": "Example mod",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-client-gametest": [
+      "dev.hboyd.simplefreeze.command.SimpleFreezeCommandTest"
+    ]
+  }
+}

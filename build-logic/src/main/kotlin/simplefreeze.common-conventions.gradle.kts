@@ -31,6 +31,8 @@ dependencies {
     compileOnly(libs.paperAPI)
     compileOnly(libs.adventureSerializerConfigurate4)
     compileOnly(libs.indra)
+    testImplementation(libs.junitJupiterApi)
+    testRuntimeOnly(libs.bundles.junitJupiterRuntime)
 }
 
 indra {
