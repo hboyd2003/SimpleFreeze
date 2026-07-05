@@ -59,6 +59,8 @@ indra {
         }
     }
 
+    signWithKeyFromPrefixedProperties("hboyd")
+
     checkstyle(libs.versions.checkstyle.get())
 }
 
