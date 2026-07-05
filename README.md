@@ -73,8 +73,9 @@ freezeManager.addFreezeEntry(targetOfflinePlayer, key);
 freezeManager.removeFreezeEntry(targetOfflinePlayer, key);
 ```
 
+## Credits
+- **Harrison Boyd** – *Initial work* - [Hboyd2003](https://github.com/hboyd2003)
+
 ## License
 
 This project is licensed under the [GNU General Lesser Public License v3.0](LICENSE.md).
-
-
