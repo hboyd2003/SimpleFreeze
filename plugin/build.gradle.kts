@@ -68,7 +68,7 @@ modrinth {
         includePreReleaseLabel = true,
         includeBuildMetadataLabel = version.toString().endsWith("-SNAPSHOT")
     )
-    versionType = if (versionNumber.toString().endsWith("-SNAPSHOT")) "beta" else "alpha"
+    versionType = if (versionNumber.toString().endsWith("-SNAPSHOT")) "beta" else "release"
     changelog = providers.environmentVariable("CHANGELOG")
     uploadFile = tasks.shadowJar.get().archiveFile.get()
     loaders = listOf("paper", "purpur", "folia")
