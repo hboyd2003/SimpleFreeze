@@ -37,6 +37,7 @@ paperweight = { id = "io.papermc.paperweight.userdev", version.ref = "paperweigh
 runPaper = { id = "xyz.jpenilla.run-paper", version.ref = "runPaper" }
 paperLoaderGen = { id = "dev.hboyd.paper-loader-gen", version.ref = "paperLoaderGen" }
 gitSimpleSemver = { id = "dev.hboyd.git-simple-semver", version.ref = "gitSimpleSemver" }
+indra = { id = "net.kyori.indra", version.ref = "indra" }
 
 [libraries]
 paperAPI = { group = "io.papermc.paper", name = "paper-api", version.ref = "paperAPI" }
