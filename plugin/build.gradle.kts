@@ -1,5 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar.Companion.shadowJar
 import dev.hboyd.git_simple_semver.GitSimpleSemverExtension
+import io.papermc.hangarpublishplugin.HangarPublishTask
 
 plugins {
     id("simplefreeze.common-conventions")
@@ -56,6 +57,10 @@ tasks {
 
     jar {
         enabled = false // Only shadowed jar
+    }
+
+    withType(HangarPublishTask::class.java) {
+        inputs.file(shadowJar.flatMap { it.archiveFile })
     }
 }
 
