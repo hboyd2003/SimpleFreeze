@@ -9,6 +9,7 @@ paperLoaderGen = "1.0.1"
 indra = "4.1.0-SNAPSHOT"
 checkstyle = "13.7.0"
 gitSimpleSemver = "2.3.0"
+minotaur = "2.9.0"
 
 # Libraries
 adventureAPI = "4.26.1"
@@ -37,6 +38,7 @@ paperweight = { id = "io.papermc.paperweight.userdev", version.ref = "paperweigh
 runPaper = { id = "xyz.jpenilla.run-paper", version.ref = "runPaper" }
 paperLoaderGen = { id = "dev.hboyd.paper-loader-gen", version.ref = "paperLoaderGen" }
 gitSimpleSemver = { id = "dev.hboyd.git-simple-semver", version.ref = "gitSimpleSemver" }
+minotaur = { id = "com.modrinth.minotaur", version.ref = "minotaur" }
 indra = { id = "net.kyori.indra", version.ref = "indra" }
 
 [libraries]
