@@ -8,6 +8,7 @@ plugins {
     //alias(libs.plugins.paperweight) // Should only be used for development
     alias(libs.plugins.gradleShadow)
     alias(libs.plugins.minotaur)
+    alias(libs.plugins.hangarPublish)
 }
 
 runPaper.folia.registerTask { }
@@ -58,24 +59,49 @@ tasks {
     }
 }
 
+val supportedMinecraftVersions = listOf("1.21.8", "1.21.9", "1.21.10", "1.21.11", "26.1")
+val fullVersion = rootProject.extensions.getByType(GitSimpleSemverExtension::class.java).version
+val publishVersion = fullVersion.buildVersionString(
+    includePreReleaseLabel = true,
+    includeBuildMetadataLabel = version.toString().endsWith("-SNAPSHOT")
+)
 
 modrinth {
-    token = providers.gradleProperty("hboydModrinthToken")
-        .orElse(providers.environmentVariable("HBOYD_MODRINTH_TOKEN"))
+    token = providers.gradleProperty("modrinthToken")
+        .orElse(providers.environmentVariable("MODRINTH_TOKEN"))
         .orNull
     projectId = "simple_freeze"
-    versionNumber = rootProject.extensions.getByType(GitSimpleSemverExtension::class.java).version.buildVersionString(
-        includePreReleaseLabel = true,
-        includeBuildMetadataLabel = version.toString().endsWith("-SNAPSHOT")
-    )
-    versionType = if (versionNumber.toString().endsWith("-SNAPSHOT")) "beta" else "release"
+    versionNumber = publishVersion
+    versionType = if (fullVersion.buildMetadataLabel.toString() == "-SNAPSHOT") "beta" else "release"
     changelog = providers.environmentVariable("CHANGELOG")
     uploadFile = tasks.shadowJar.get().archiveFile.get()
     loaders = listOf("paper", "purpur", "folia")
-    gameVersions = listOf("1.21.8", "1.21.9", "1.21.10", "1.21.11", "26.1")
+    gameVersions = supportedMinecraftVersions
     dependencies {
         required.project("packetevents")
         // TODO: Add chasm companion plugin when it is published to modrinth
     }
     syncBodyFrom = rootProject.file("README.md").readText()
+}
+
+hangarPublish {
+    publications.register("plugin") {
+        version = publishVersion
+        id = "simple-freeze"
+        channel = if (fullVersion.buildMetadataLabel.toString() == "-SNAPSHOT") "snapshot" else "release"
+        changelog = providers.environmentVariable("CHANGELOG")
+        apiKey = providers.gradleProperty("hangarKey")
+            .orElse(providers.environmentVariable("HANGAR_KEY"))
+            .orNull
+        platforms {
+            paper {
+                jar = tasks.shadowJar.get().archiveFile.get()
+                platformVersions = supportedMinecraftVersions
+                dependencies {
+                    url("PacketEvents", "https://modrinth.com/plugin/packetevents")
+                    // TODO: Add chasm companion plugin when it is published to hangar
+                }
+            }
+        }
+    }
 }
