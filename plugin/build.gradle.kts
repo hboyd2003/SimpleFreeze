@@ -77,7 +77,7 @@ modrinth {
         .orNull
     projectId = "simple_freeze"
     versionNumber = publishVersion
-    versionType = if (fullVersion.buildMetadataLabel.toString() == "-SNAPSHOT") "beta" else "release"
+    versionType = if (fullVersion.preReleaseLabel.contains("SNAPSHOT")) "beta" else "release"
     changelog = providers.environmentVariable("CHANGELOG")
     uploadFile = tasks.shadowJar.get().archiveFile.get()
     loaders = listOf("paper", "purpur", "folia")
@@ -93,7 +93,7 @@ hangarPublish {
     publications.register("plugin") {
         version = publishVersion
         id = "simple-freeze"
-        channel = if (fullVersion.buildMetadataLabel.toString() == "-SNAPSHOT") "snapshot" else "release"
+        channel = if (fullVersion.preReleaseLabel.contains("SNAPSHOT")) "snapshot" else "release"
         changelog = providers.environmentVariable("CHANGELOG")
         apiKey = providers.gradleProperty("hangarKey")
             .orElse(providers.environmentVariable("HANGAR_KEY"))
