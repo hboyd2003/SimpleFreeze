@@ -25,7 +25,7 @@ jetbrainsAnnotations = "26.1.0"
 jspecify = "1.0.0"
 
 # JDBC
-sqliteJDBC = "3.51.2.0"
+sqliteJDBC = "3.53.2.1"
 mariaDBJDBC = "3.5.7"
 mySQLJDBC = "9.6.0"
 
