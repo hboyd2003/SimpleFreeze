@@ -91,7 +91,7 @@ modrinth {
 
 hangarPublish {
     publications.register("plugin") {
-        version = publishVersion
+        version = fullVersion.toString() // Full version as releases cannot be replaced
         id = "simple-freeze"
         channel = if (fullVersion.preReleaseLabel.contains("SNAPSHOT")) "snapshot" else "release"
         changelog = providers.environmentVariable("CHANGELOG")
