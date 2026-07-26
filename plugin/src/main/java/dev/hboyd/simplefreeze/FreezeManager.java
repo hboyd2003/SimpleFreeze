@@ -384,11 +384,13 @@ public final class FreezeManager implements IFreezeManager, Listener, PacketList
                     .filter(eventClass -> !CANCELLABLE_EVENT_EXCEPTIONS.contains(eventClass))
                     .collect(Collectors.toList());
 
-            final ComponentBuilder<TextComponent, TextComponent.Builder> componentBuilder = Component.text().appendNewline().append(Component.text("Cancellable " + eventSuperClass.getName() + " Events: "));
+            final ComponentBuilder<TextComponent, TextComponent.Builder> componentBuilder = Component.text()
+                    .appendNewline()
+                    .append(Component.text("Cancellable " + eventSuperClass.getName() + " Events: "));
             for (final Class<?> cancellableEvent : cancellableEvents) {
                 componentBuilder.appendNewline().append(Component.text(cancellableEvent.getName()));
             }
-            SimpleFreeze.LOGGER.info(componentBuilder.build());
+            SimpleFreeze.LOGGER.debug(componentBuilder.build());
             return cancellableEvents;
         }
     }
