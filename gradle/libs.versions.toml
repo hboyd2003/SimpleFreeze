@@ -27,7 +27,7 @@ jspecify = "1.0.0"
 # JDBC
 sqliteJDBC = "3.53.4.0"
 mariaDBJDBC = "3.5.9"
-mySQLJDBC = "9.7.0"
+mySQLJDBC = "26.7.0"
 
 # Testing
 junit = "6.0.3"
