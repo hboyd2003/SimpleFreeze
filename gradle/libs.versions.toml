@@ -4,7 +4,7 @@ paperAPI = "1.21.8-R0.1-SNAPSHOT"
 # Gradle Plugins
 gradleShadow = "9.6.1"
 paperweight = "2.0.0-beta.21"
-runPaper = "3.0.2"
+runPaper = "3.1.0"
 paperLoaderGen = "1.0.1"
 indra = "4.1.0-SNAPSHOT"
 checkstyle = "13.7.0"
