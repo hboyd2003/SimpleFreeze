@@ -458,7 +458,7 @@ public final class FreezeManager implements IFreezeManager, Listener, PacketList
             if (preFreezeState.isPresent()) preFreezeState.get().restoreTo(vehicle);
             else {
                 SimpleFreeze.LOGGER.warn("Failed to find pre-freeze state for entity {} ({}). Entity will be set to a default state", vehicle.getType().getKey(), vehicle.getUniqueId());
-                PreFreezeState.defaultOf(player).restoreTo(player);
+                PreFreezeState.defaultOf(player).restoreTo(vehicle);
             }
             this.preFreezeStateDao.delete(vehicle.getUniqueId());
 
