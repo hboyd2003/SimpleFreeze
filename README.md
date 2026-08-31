@@ -8,27 +8,27 @@ state they were frozen in.
 
 A player can be frozen by multiple different "freeze entries", allowing for multiple plugins/sources to use
 player freezing without causing any collisions. Each freeze entry has a Minecraft resource style Key in the form of
-"namespace:value" which is used to identify a freeze entry. All SimpleFreeze commands use the `SimpleFreeze:command`
+"namespace:value" which is used to identify a freeze entry. All SimpleFreeze commands use the `simplefreeze:command`
 key.
 
 ## Usage
 
 ### Plugin
-Supports Minecraft Paper & Purpur 1.28–26.1
+Supports Minecraft Paper & Purpur 1.21.28–26.1
 
 Download the latest version of the plugin from [releases](https://github.com/hboyd2003/SimpleFreeze).
 
 #### Commands
 
-|             Command             | Description                                                                                                           |
-|:-------------------------------:|:----------------------------------------------------------------------------------------------------------------------|
-|  `/freeze <players> [<title>]`  | Freezes one or more players with an optional MiniMessage title displayed                                              |
-|      `/unfreeze <players>`      | Unfreezes one or more players frozen with the freeze command                                                          |
-|  `/unfreeze <players> <force>`  | Forcibly unfreezes one or more players removing all freeze entries and reseting their player state to a default state |
-|     `/simplefreeze version`     | Displays the plugin version                                                                                           |
-|     `/simplefreeze status`      | Shows details on how many players are frozen and by which keys                                                        |
-| `/simplefreeze status <player>` | Shows freeze details for a specific frozen player.                                                                    |
-|      `/simplefreeze list`       | Lists currently frozen players.                                                                                       |
+|             Command             | Description                                                                                                            |
+|:-------------------------------:|:-----------------------------------------------------------------------------------------------------------------------|
+|  `/freeze <players> [<title>]`  | Freezes one or more players with an optional MiniMessage title displayed                                               |
+|      `/unfreeze <players>`      | Unfreezes one or more players frozen with the freeze command                                                           |
+|  `/unfreeze <players> <force>`  | Forcibly unfreezes one or more players removing all freeze entries and resetting their player state to a default state |
+|     `/simplefreeze version`     | Displays the plugin version                                                                                            |
+|     `/simplefreeze status`      | Shows details on how many players are frozen and by which keys                                                         |
+| `/simplefreeze status <player>` | Shows freeze details for a specific frozen player.                                                                     |
+|      `/simplefreeze list`       | Lists currently frozen players.                                                                                        |
 
 **Permissions**
 
