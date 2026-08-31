@@ -15,7 +15,7 @@ key.
 ## Usage
 
 ### Plugin
-Supports Minecraft Paper & Purpur 1.21.28–26.1
+Supports Minecraft Paper & Purpur 1.21.28–26.2
 
 Releases and snapshots are available on [GitHub](https://github.com/hboyd2003/SimpleFreeze), [Modrinth](https://modrinth.com/plugin/simple_freeze/versions) and [Hangar](https://hangar.papermc.io/Prismo/Simple-Freeze/versions)
 
