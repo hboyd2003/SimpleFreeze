@@ -23,25 +23,22 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.tree.LiteralCommandNode;
-import dev.hboyd.chasm.font.StyledGlyph;
-import dev.hboyd.prismatic.MessageUtil;
-import dev.hboyd.prismatic.brigadier.BrigadierCommand;
-import dev.hboyd.prismatic.brigadier.argument.CustomOfflinePlayerArgument;
-import dev.hboyd.prismatic.brigadier.argument.CustomOfflinePlayerArgumentResolver;
-import dev.hboyd.prismatic.text.GroupedMessageRenderer;
-import dev.hboyd.prismatic.text.GroupedMessageStyle;
-import dev.hboyd.prismatic.text.PaginatedListRenderer;
-import dev.hboyd.prismatic.text.PaginatedListStyle;
+import dev.hboyd.prismatic.paper.MessageUtil;
+import dev.hboyd.prismatic.paper.brigadier.BrigadierCommand;
+import dev.hboyd.prismatic.paper.brigadier.argument.OfflinePlayerArgumentType;
+import dev.hboyd.prismatic.paper.brigadier.argument.OfflinePlayerArgumentTypeResolver;
+import dev.hboyd.prismatic.text.GroupedComponent;
+import dev.hboyd.prismatic.text.IPaginatedListComponentItemFactory;
+import dev.hboyd.prismatic.text.PaginatedListComponent;
 import dev.hboyd.simplefreeze.SimpleFreeze;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.minimessage.translation.Argument;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.permissions.Permission;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -65,7 +62,8 @@ import static java.time.temporal.ChronoField.YEAR;
 
 public class SimpleFreezeCommand implements BrigadierCommand {
     private static final SimpleCommandExceptionType NO_FROZEN_PLAYERS_EXCEPTION =
-            new SimpleCommandExceptionType(MessageUtil.translatableMessage("simplefreeze.command.simplefreeze.list.error.no_frozen_players"));
+            new SimpleCommandExceptionType(MessageUtil.translatableMessage(
+                    "simplefreeze.command.simplefreeze.list.error.no_frozen_players"));
     private static final SimpleCommandExceptionType PLAYER_NOT_FROZEN_EXCEPTION =
             new SimpleCommandExceptionType(MessageUtil.translatableMessage("simplefreeze.error.not_frozen"));
 
@@ -98,7 +96,11 @@ public class SimpleFreezeCommand implements BrigadierCommand {
                 .then(Commands.literal("status")
                         .requires(stack -> stack.getSender().hasPermission("simplefreeze.command.simplefreeze.status"))
                         .executes(this::status)
-                        .then(Commands.argument("player", new CustomOfflinePlayerArgument(() -> simpleFreeze.freezeManager().frozenPlayers(), true, PLAYER_NOT_FROZEN_EXCEPTION))
+                        .then(Commands.argument("player", OfflinePlayerArgumentType.offlinePlayerBuilder()
+                                        .offlinePlayerFilter(offlinePlayer -> simpleFreeze.freezeManager()
+                                                .isPlayerFrozen(offlinePlayer))
+                                        .notMatchedException(PLAYER_NOT_FROZEN_EXCEPTION)
+                                        .build())
                                 .executes(this::playerStatus)))
                 .then(Commands.literal("list")
                         .executes(this::list))
@@ -108,12 +110,9 @@ public class SimpleFreezeCommand implements BrigadierCommand {
 
     @Override
     public void register(final Commands commands) {
-        commands.register(this.simpleFreezeCommand, "Commands for information about SimpleFreeze and its status", List.of("sf"));
-    }
-
-    @Override
-    public Collection<Permission> permissions() {
-        return List.of();
+        commands.register(this.simpleFreezeCommand,
+                "Commands for information about SimpleFreeze and its status",
+                List.of("sf"));
     }
 
     private int version(final CommandContext<CommandSourceStack> commandContext) {
@@ -125,47 +124,56 @@ public class SimpleFreezeCommand implements BrigadierCommand {
     }
 
     private int status(final CommandContext<CommandSourceStack> commandContext) {
-        final Map<OfflinePlayer, LinkedHashSet<Key>> freezeEntryMap = this.simpleFreeze.freezeManager().getFreezeEntryMap();
+        final Map<OfflinePlayer, LinkedHashSet<Key>> freezeEntryMap = this.simpleFreeze.freezeManager()
+                .getFreezeEntryMap();
 
-        final List<Component> responseLines = List.of(
-                Component.translatable("simplefreeze.command.simplefreeze.status.total",
-                        Argument.numeric("player_count", freezeEntryMap.size())),
-                Component.translatable("simplefreeze.command.simplefreeze.status.uniqueKeys",
+        final TextComponent lines = Component.text()
+                .append(Component.translatable("simplefreeze.command.simplefreeze.status.total",
+                        Argument.numeric("player_count", freezeEntryMap.size())))
+                .appendNewline()
+                .append(Component.translatable("simplefreeze.command.simplefreeze.status.uniqueKeys",
                         Argument.numeric("freeze_entry_count", freezeEntryMap.values().stream()
                                 .flatMap(Collection::stream)
                                 .distinct()
-                                .count())));
+                                .count())))
+                .build();
 
-        GroupedMessageRenderer.sendGroupedMessage(commandContext.getSource().getSender(),
-                Component.translatable("simplefreeze.command.simplefreeze.status.header"),
-                responseLines,
-                GroupedMessageStyle.builder().spacingGlyph(new StyledGlyph('-', Style.empty())).build());
+        commandContext.getSource().getSender().sendMessage(
+                GroupedComponent.of(Component.translatable("simplefreeze.command.simplefreeze.status.header"), lines));
 
         return Command.SINGLE_SUCCESS;
     }
 
     private int playerStatus(final CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
-        final OfflinePlayer offlinePlayer = commandContext.getArgument("player", CustomOfflinePlayerArgumentResolver.class)
+        final OfflinePlayer offlinePlayer = commandContext.getArgument("player",
+                        OfflinePlayerArgumentTypeResolver.class)
                 .resolve(commandContext.getSource()).iterator().next();
 
         final LinkedHashSet<Key> freezeEntries = this.simpleFreeze.freezeManager().getFreezeEntries(offlinePlayer);
 
-        final List<Component> responseLines = List.of(
-                Component.translatable("simplefreeze.command.simplefreeze.status.player.totalentries",
-                        Argument.numeric("freeze_entry_count", (long) freezeEntries.size())),
-                Component.translatable("simplefreeze.command.simplefreeze.status.player.entries",
+        final TextComponent lines = Component.text()
+                .append(Component.translatable("simplefreeze.command.simplefreeze.status.player.totalentries",
+                        Argument.numeric("freeze_entry_count", (long) freezeEntries.size())))
+                .appendNewline()
+                .append(Component.translatable("simplefreeze.command.simplefreeze.status.player.entries",
                         Argument.string("freeze_entries", freezeEntries.stream()
                                 .map(Key::asString)
-                                .collect(Collectors.joining(",")))),
-                Component.translatable("simplefreeze.command.simplefreeze.status.player.lastEntry",
-                        Argument.string("freeze_entry", freezeEntries.getFirst().asString())),
-                Component.translatable("simplefreeze.command.simplefreeze.status.player.frozenSince",
-                        Argument.string("frozen_timestamp", ISO_LOCAL_DATE.withZone(ZoneId.systemDefault()).format(Instant.now()))));
+                                .collect(Collectors.joining(",")))))
+                .appendNewline()
+                .append(Component.translatable("simplefreeze.command.simplefreeze.status.player.lastEntry",
+                        Argument.string("freeze_entry", freezeEntries.getFirst().asString())))
+                .appendNewline()
+                .append(Component.translatable("simplefreeze.command.simplefreeze.status.player.frozenSince",
+                        Argument.string("frozen_timestamp",
+                                ISO_LOCAL_DATE.withZone(ZoneId.systemDefault()).format(Instant.now()))))
+                .build();
 
-        GroupedMessageRenderer.sendGroupedMessage(commandContext.getSource().getSender(),
-                Component.translatable("simplefreeze.command.simplefreeze.status.player.header",
-                        Argument.string("player_name", offlinePlayer.getName())),
-                responseLines);
+        commandContext.getSource()
+                .getSender()
+                .sendMessage(GroupedComponent.of(
+                        Component.translatable("simplefreeze.command.simplefreeze.status.player.header",
+                                Argument.string("player_name", offlinePlayer.getName())),
+                        lines));
 
         return Command.SINGLE_SUCCESS;
     }
@@ -190,10 +198,12 @@ public class SimpleFreezeCommand implements BrigadierCommand {
         if (frozenPlayerList.isEmpty())
             throw NO_FROZEN_PLAYERS_EXCEPTION.create();
 
-        PaginatedListRenderer.sendPaginatedList(commandContext.getSource().getSender(),
-                frozenPlayerList,
-                Component.text("Frozen Players"),
-                PaginatedListStyle.DEFAULT);
+        PaginatedListComponent.builder()
+                .title(Component.text("Frozen Players"))
+                .itemFactory(IPaginatedListComponentItemFactory.of(frozenPlayerList))
+                .build()
+                .sendAsMessage(commandContext.getSource().getSender());
+
         return Command.SINGLE_SUCCESS;
     }
 }

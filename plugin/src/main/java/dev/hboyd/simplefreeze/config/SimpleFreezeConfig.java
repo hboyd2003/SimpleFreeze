@@ -18,7 +18,7 @@
 
 package dev.hboyd.simplefreeze.config;
 
-import dev.hboyd.prismatic.configurate.PaperConfig;
+import dev.hboyd.prismatic.paper.configurate.PaperConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 import org.spongepowered.configurate.objectmapping.meta.Required;
@@ -29,21 +29,18 @@ import java.nio.file.Path;
 @SuppressWarnings({"FieldMayBeFinal", "FieldCanBeLocal"})
 @ConfigSerializable
 public class SimpleFreezeConfig extends PaperConfig {
-    private static final String CONFIG_VERSION = "1";
+    private static final int CONFIG_VERSION = 2;
 
     @Required
     private final DatabaseConfig databaseConfig = new DatabaseConfig(DatabaseConfig.DatabaseType.SQLITE, null);
 
     @Required
-    @Comment("Forces all players to dismount when the controlling player disconnects saving the rode entity with the disconnecting player")
+    @Comment("Forces all players to dismount when the controlling player disconnects saving the ridden entity with the disconnecting player")
     private final boolean alwaysDisconnectWithEntity = true;
 
-    @Required
-    @Comment("DO NOT CHANGE THIS VALUE")
-    private final String configVersion = CONFIG_VERSION;
-
     public SimpleFreezeConfig(final Path configFilePath) throws IOException {
-        this.initialize(configFilePath);
+        super(configFilePath, CONFIG_VERSION);
+        this.initialize();
     }
 
     public DatabaseConfig databaseConfig() {
@@ -52,9 +49,5 @@ public class SimpleFreezeConfig extends PaperConfig {
 
     public boolean alwaysDisconnectWithEntity() {
         return this.alwaysDisconnectWithEntity;
-    }
-
-    public String configVersion() {
-        return this.configVersion;
     }
 }

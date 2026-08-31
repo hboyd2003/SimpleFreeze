@@ -25,11 +25,11 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.tree.LiteralCommandNode;
-import dev.hboyd.prismatic.MessageUtil;
-import dev.hboyd.prismatic.brigadier.BrigadierCommand;
-import dev.hboyd.prismatic.brigadier.CommandUtil;
-import dev.hboyd.prismatic.brigadier.argument.CustomOfflinePlayerArgument;
-import dev.hboyd.prismatic.brigadier.argument.CustomOfflinePlayerArgumentResolver;
+import dev.hboyd.prismatic.paper.MessageUtil;
+import dev.hboyd.prismatic.paper.brigadier.BrigadierCommand;
+import dev.hboyd.prismatic.paper.brigadier.CommandUtil;
+import dev.hboyd.prismatic.paper.brigadier.argument.OfflinePlayerArgumentType;
+import dev.hboyd.prismatic.paper.brigadier.argument.OfflinePlayerArgumentTypeResolver;
 import dev.hboyd.simplefreeze.FreezeManager;
 import dev.hboyd.simplefreeze.ISimpleFreeze;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
@@ -42,7 +42,6 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.translation.Argument;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
-import org.bukkit.permissions.Permission;
 
 import java.util.Collection;
 import java.util.List;
@@ -61,10 +60,10 @@ public class FreezeCommands implements BrigadierCommand {
     private final LiteralCommandNode<CommandSourceStack> unfreezeCommand;
 
     public FreezeCommands(final FreezeManager freezeManager) {
-        final CustomOfflinePlayerArgument unfrozenPlayersArgument = new CustomOfflinePlayerArgument(
-                offlinePlayer -> !freezeManager.frozenPlayers(FREEZE_ENTRY_KEY).contains(offlinePlayer),
-                false,
-                PLAYER_ALREADY_FROZEN_EXCEPTION);
+        final OfflinePlayerArgumentType unfrozenPlayersArgument = OfflinePlayerArgumentType.offlinePlayersBuilder()
+                .offlinePlayerFilter(offlinePlayer -> !freezeManager.frozenPlayers(FREEZE_ENTRY_KEY).contains(offlinePlayer))
+                .notMatchedException(PLAYER_ALREADY_FROZEN_EXCEPTION)
+                .build();
 
         this.freezeManager = freezeManager;
         this.freezeCommand = Commands.literal("freeze")
@@ -76,7 +75,7 @@ public class FreezeCommands implements BrigadierCommand {
 
         this.unfreezeCommand = Commands.literal("unfreeze")
                 .requires(stack -> stack.getSender().hasPermission("simplefreeze.command.unfreeze"))
-                .then(Commands.argument("players", CustomOfflinePlayerArgument.OFFLINE_PLAYERS)
+                .then(Commands.argument("players", OfflinePlayerArgumentType.OFFLINE_PLAYERS)
                         .executes(this::unfreezePlayer)
                         .then(Commands.argument("force", BoolArgumentType.bool())
                                 .executes(this::unfreezePlayerForceable)))
@@ -89,13 +88,8 @@ public class FreezeCommands implements BrigadierCommand {
         registrar.register(this.unfreezeCommand, "Unfreezes one or more players optionally force unfreezing them settings the player to a default state.");
     }
 
-    @Override
-    public Collection<Permission> permissions() {
-        return List.of();
-    }
-
     private int freezePlayer(final CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
-        final Collection<OfflinePlayer> players = commandContext.getArgument("players", CustomOfflinePlayerArgumentResolver.class)
+        final Collection<OfflinePlayer> players = commandContext.getArgument("players", OfflinePlayerArgumentTypeResolver.class)
                 .resolve(commandContext.getSource());
 
         players.forEach(player -> this.freezeManager.addFreezeEntry(player, FREEZE_ENTRY_KEY));
@@ -109,7 +103,7 @@ public class FreezeCommands implements BrigadierCommand {
     }
 
     private int freezePlayerWithTitle(final CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
-        final Collection<OfflinePlayer> players = commandContext.getArgument("players", CustomOfflinePlayerArgumentResolver.class)
+        final Collection<OfflinePlayer> players = commandContext.getArgument("players", OfflinePlayerArgumentTypeResolver.class)
                 .resolve(commandContext.getSource());
         final Component titleComponent = MiniMessage.miniMessage().deserialize(commandContext.getArgument("title", String.class));
 
@@ -124,7 +118,7 @@ public class FreezeCommands implements BrigadierCommand {
     }
 
     private int unfreezePlayer(final CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
-        final Collection<OfflinePlayer> players = commandContext.getArgument("players", CustomOfflinePlayerArgumentResolver.class)
+        final Collection<OfflinePlayer> players = commandContext.getArgument("players", OfflinePlayerArgumentTypeResolver.class)
                 .resolve(commandContext.getSource());
 
         final List<OfflinePlayer> filteredPlayers = players.stream()
@@ -185,7 +179,7 @@ public class FreezeCommands implements BrigadierCommand {
     }
 
     private int unfreezePlayerForceable(final CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
-        final Collection<OfflinePlayer> players = commandContext.getArgument("players", CustomOfflinePlayerArgumentResolver.class)
+        final Collection<OfflinePlayer> players = commandContext.getArgument("players", OfflinePlayerArgumentTypeResolver.class)
                 .resolve(commandContext.getSource());
         final boolean force = commandContext.getArgument("force", Boolean.class);
 
