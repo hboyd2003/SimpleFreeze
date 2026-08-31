@@ -202,7 +202,7 @@ public final class FreezeManager implements IFreezeManager, Listener, PacketList
         }
 
         return freezeEntryMap.entrySet().stream()
-                .collect(Collectors.toMap(entry -> Bukkit.getOfflinePlayer(entry.getKey()),
+                .collect(Collectors.toUnmodifiableMap(entry -> Bukkit.getOfflinePlayer(entry.getKey()),
                         Map.Entry::getValue));
     }
 
@@ -210,7 +210,7 @@ public final class FreezeManager implements IFreezeManager, Listener, PacketList
     public @Unmodifiable Set<OfflinePlayer> frozenPlayers() {
         return this.freezeEntryDao.getUuids().stream()
                 .map(Bukkit::getOfflinePlayer)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     @Override
@@ -219,7 +219,7 @@ public final class FreezeManager implements IFreezeManager, Listener, PacketList
 
         return this.freezeEntryDao.getUuids(entryKey).stream()
                 .map(Bukkit::getOfflinePlayer)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     @Override
