@@ -1,4 +1,5 @@
 # SimpleFreeze
+[![Modrinth](https://img.shields.io/modrinth/v/simple_freeze?style=flat-square&label=Modrinth%20Version)](https://modrinth.com/plugin/simple_freeze/versions) [![Hangar Downloads](https://img.shields.io/hangar/dt/Simple-Freeze?style=flat-square&label=Hangar%20Downloads)](https://hangar.papermc.io/Prismo/Simple-Freeze)
 
 SimpleFreeze is a Minecraft Paper/Folia plugin and API that provides quick, simple, and reliable player freezing.
 
