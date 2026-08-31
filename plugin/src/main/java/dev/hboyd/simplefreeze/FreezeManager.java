@@ -97,7 +97,6 @@ import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.vehicle.VehicleEvent;
 import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.util.Vector;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Unmodifiable;
 import org.jspecify.annotations.Nullable;
 import org.seasar.doma.jdbc.Config;
@@ -299,7 +298,6 @@ public final class FreezeManager implements IFreezeManager, Listener, PacketList
 
     //region Events
     @Override
-    @ApiStatus.Internal
     public void onPacketReceive(final PacketReceiveEvent event) {
         final Player player = event.getPlayer();
         if (event.isCancelled()
@@ -354,19 +352,16 @@ public final class FreezeManager implements IFreezeManager, Listener, PacketList
         }
     }
 
-    @ApiStatus.Internal
     public void handleCancellablePlayerEvent(final PlayerEvent event) {
         if (this.isEntityFrozen(event.getPlayer()))
             ((Cancellable) event).setCancelled(true);
     }
 
-    @ApiStatus.Internal
     public void handleCancellableEntityEvent(final EntityEvent event) {
         if (this.isEntityFrozen(event.getEntity()))
             ((Cancellable) event).setCancelled(true);
     }
 
-    @ApiStatus.Internal
     public void handleCancellableVehicleEvent(final VehicleEvent event) {
         if (this.isEntityFrozen(event.getVehicle()))
             ((Cancellable) event).setCancelled(true);
