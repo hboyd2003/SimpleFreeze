@@ -65,7 +65,6 @@ mySQLJDBC = { group = "com.mysql", name = "mysql-connector-j", version.ref = "my
 
 # Adventure
 adventureSerializerConfigurate4 = { group = "net.kyori", name = "adventure-serializer-configurate4", version.ref = "adventureAPI" }
-adventureSerializerANSI = { group = "net.kyori", name = "adventure-text-serializer-ansi", version.ref = "adventureAPI" }
 
 # Configurate
 configurateHocon = { group = "org.spongepowered", name = "configurate-hocon", version.ref = "configurate" }
