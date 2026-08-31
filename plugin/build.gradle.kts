@@ -18,6 +18,8 @@ dependencies {
     //paperweight.paperDevBundle(libs.versions.paperAPI) // Should only be used for development
 
     compileOnly(libs.packetEvents)
+    compileOnly(libs.jetbrainsAnnotations) // Provided by PaperAPI
+    compileOnly(libs.jspecify) // Provided by PaperAPI
 
     paperRuntime(libs.adventureSerializerConfigurate4)
     paperRuntime(libs.classGraph)
