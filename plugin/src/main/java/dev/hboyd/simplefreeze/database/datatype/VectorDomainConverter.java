@@ -26,7 +26,7 @@ import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
 
 @ExternalDomain
-public class VectorDomainConvertor implements DomainConverter<Vector, byte[]> {
+public class VectorDomainConverter implements DomainConverter<Vector, byte[]> {
 
     @Override
     public byte[] fromDomainToValue(final Vector vector) {
