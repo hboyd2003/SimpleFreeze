@@ -487,7 +487,7 @@ public final class FreezeManager implements IFreezeManager, Listener, PacketList
             if (passenger instanceof Player) continue;
 
             passenger.removeScoreboardTag(FROZEN_SCOREBOARD_TAG);
-            playerPassengers.addAll(player.getPassengers());
+            playerPassengers.addAll(passenger.getPassengers());
         }
     }
 
