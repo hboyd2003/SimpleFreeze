@@ -98,7 +98,7 @@ public interface FreezeEntryDao {
     @Select
     @Sql("""
             SELECT count(*)
-              FROM FreezeEntry
+              FROM freeze_entry
             """)
     int count();
 
