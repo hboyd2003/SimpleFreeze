@@ -128,7 +128,11 @@ public final class SimpleFreeze extends JavaPlugin implements ISimpleFreeze {
         final DataSource dataSource;
         try {
             dataSource = switch (this.simpleFreezeConfig.databaseConfig().databaseType()) {
-                case MYSQL -> new MysqlDataSource();
+                case MYSQL -> {
+                    final MysqlDataSource mysqlDataSource = new MysqlDataSource();
+                    mysqlDataSource.setUrl(this.simpleFreezeConfig.databaseConfig().jdbcURI().toString());
+                    yield mysqlDataSource;
+                }
                 case SQLITE -> {
                     final SQLiteDataSource sqLiteDataSource = new SQLiteDataSource();
                     sqLiteDataSource.setUrl(Optional.ofNullable(this.simpleFreezeConfig.databaseConfig().jdbcURI())
