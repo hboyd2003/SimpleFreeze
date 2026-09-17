@@ -33,6 +33,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
+import org.flywaydb.core.Flyway;
 import org.mariadb.jdbc.MariaDbDataSource;
 import org.seasar.doma.jdbc.SimpleConfig;
 import org.seasar.doma.jdbc.dialect.Dialect;
@@ -77,7 +78,7 @@ public final class SimpleFreeze extends JavaPlugin implements ISimpleFreeze {
             throw new RuntimeException("Failed to load configuration file", e);
         }
 
-        this.freezeManager = new FreezeManager(this.buildDomaConfiguration(), this.simpleFreezeConfig.alwaysDisconnectWithEntity());
+        this.freezeManager = new FreezeManager(this.configureDatabase(), this.simpleFreezeConfig.alwaysDisconnectWithEntity());
         Bukkit.getPluginManager().registerEvents(this.freezeManager, this);
 
         // Commands
@@ -123,7 +124,7 @@ public final class SimpleFreeze extends JavaPlugin implements ISimpleFreeze {
         return HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT, op.apply(Component.text("v" + this.getPluginMeta().getVersion())));
     }
 
-    private SimpleConfig buildDomaConfiguration() {
+    private SimpleConfig configureDatabase() {
         final DataSource dataSource;
         try {
             dataSource = switch (this.simpleFreezeConfig.databaseConfig().databaseType()) {
@@ -146,6 +147,13 @@ public final class SimpleFreeze extends JavaPlugin implements ISimpleFreeze {
             case MYSQL, MARIADB -> new MysqlDialect();
             case SQLITE -> new SqliteDialect();
         };
+
+        Flyway.configure(SimpleFreeze.class.getClassLoader())
+                .dataSource(dataSource)
+                .locations("classpath:dev/hboyd/simplefreeze/database/migration/" + dialect.getName())
+                .baselineOnMigrate(true)
+                .load()
+                .migrate();
 
         return SimpleConfig.builder(dataSource, dialect).jdbcLogger(new Slf4jJdbcLogger()).build();
     }

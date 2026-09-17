@@ -23,7 +23,6 @@ import net.kyori.adventure.text.Component;
 import org.seasar.doma.Dao;
 import org.seasar.doma.Delete;
 import org.seasar.doma.Insert;
-import org.seasar.doma.Script;
 import org.seasar.doma.Select;
 import org.seasar.doma.Sql;
 import org.seasar.doma.Update;
@@ -34,20 +33,6 @@ import java.util.UUID;
 
 @Dao
 public interface FreezeEntryDao {
-    @Script
-    @Sql("""
-            CREATE TABLE IF NOT EXISTS freeze_entry
-            (
-                player_uuid BLOB NOT NULL,
-                entry_key   TEXT NOT NULL,
-                title       TEXT,
-                added       INT  NOT NULL,
-                CONSTRAINT freeze_entry_pk
-                    PRIMARY KEY (player_uuid, entry_key) ON CONFLICT REPLACE
-            )
-            """)
-    void createIfNotExists();
-
     @Select
     @Sql("""
             SELECT /*%expand*/* FROM freeze_entry

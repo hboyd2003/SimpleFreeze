@@ -23,6 +23,7 @@ doma = "3.14.0"
 chasm = "1.0.1"
 jetbrainsAnnotations = "26.1.0"
 jspecify = "1.0.0"
+flyway = "13.7.0"
 
 # JDBC
 sqliteJDBC = "3.53.4.0"
@@ -63,6 +64,9 @@ mariaDBJDBC = { group = "org.mariadb.jdbc", name = "mariadb-java-client", versio
 sqliteJDBC = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "sqliteJDBC"}
 mySQLJDBC = { group = "com.mysql", name = "mysql-connector-j", version.ref = "mySQLJDBC"}
 
+flywayCore = { group = "org.flywaydb", name = "flyway-core", version.ref = "flyway" }
+flywayMysql = { group = "org.flywaydb", name = "flyway-mysql", version.ref = "flyway" }
+
 # Adventure
 adventureSerializerConfigurate4 = { group = "net.kyori", name = "adventure-serializer-configurate4", version.ref = "adventureAPI" }
 
@@ -94,6 +98,10 @@ doma = [
 configurate = [
     "configurateHocon",
     "configurateNBT"
+]
+flyway = [
+    "flywayCore",
+    "flywayMysql"
 ]
 
 # Testing

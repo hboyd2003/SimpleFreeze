@@ -157,9 +157,6 @@ public final class FreezeManager implements IFreezeManager, Listener, PacketList
         this.preFreezeStateDao = new PreFreezeStateDaoImpl(databaseConfig);
         this.alwaysDisconnectWithEntity = alwaysDisconnectWithEntity;
 
-        this.freezeEntryDao.createIfNotExists();
-        this.preFreezeStateDao.createIfNotExists();
-
         Bukkit.getServer().getAsyncScheduler().runAtFixedRate(SimpleFreeze.INSTANCE,
                 this::tick,
                 1,

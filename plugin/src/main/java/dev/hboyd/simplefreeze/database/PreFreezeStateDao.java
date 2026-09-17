@@ -21,7 +21,6 @@ package dev.hboyd.simplefreeze.database;
 import org.seasar.doma.Dao;
 import org.seasar.doma.Delete;
 import org.seasar.doma.Insert;
-import org.seasar.doma.Script;
 import org.seasar.doma.Select;
 import org.seasar.doma.Sql;
 
@@ -30,34 +29,6 @@ import java.util.UUID;
 
 @Dao
 public interface PreFreezeStateDao {
-    @Script
-    @Sql("""
-            CREATE TABLE IF NOT EXISTS pre_freeze_state
-            (
-                uuid                           BLOB    NOT NULL
-                    CONSTRAINT player_uuid
-                        PRIMARY KEY
-                            ON CONFLICT REPLACE,
-                velocity                       TEXT    NOT NULL,
-                fire_ticks                     INT     NOT NULL,
-                freeze_ticks                   INT     NOT NULL,
-                freeze_ticking_locked          TINYINT NOT NULL,
-                fall_distance                  FLOAT   NOT NULL,
-                silent                         INT     NOT NULL,
-                no_physics                     TINYINT NOT NULL,
-                has_gravity                    TINYINT NOT NULL,
-                potion_effects_json            TEXT,
-                no_damage_ticks                INT,
-                next_arrow_removal             INT,
-                next_bee_stinger_removal       INT,
-                sleeping_ignored               TINYINT,
-                warden_warning_level           INT,
-                warden_warning_cooldown        INT,
-                warden_time_since_last_warning INT
-            );
-            """)
-    void createIfNotExists();
-
     @Sql("""
             SELECT /*%expand*/*
               FROM pre_freeze_state

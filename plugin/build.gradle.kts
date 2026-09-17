@@ -29,6 +29,7 @@ dependencies {
     paperRuntime(libs.chasm)
     paperRuntime(libs.bundles.configurate)
     paperRuntime(libs.bundles.prismatic)
+    paperRuntime(libs.bundles.flyway)
 
     implementation(projects.simplefreezeApi)
 
