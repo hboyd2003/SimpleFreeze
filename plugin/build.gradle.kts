@@ -26,6 +26,7 @@ dependencies {
     paperRuntime(libs.sqliteJDBC)
     paperRuntime(libs.mySQLJDBC)
     paperRuntime(libs.mariaDBJDBC)
+    paperRuntime(libs.hikariCP)
     paperRuntime(libs.chasm)
     paperRuntime(libs.bundles.configurate)
     paperRuntime(libs.bundles.prismatic)

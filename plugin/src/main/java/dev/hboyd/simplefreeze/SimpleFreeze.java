@@ -18,9 +18,11 @@
 
 package dev.hboyd.simplefreeze;
 
-import com.mysql.cj.jdbc.MysqlDataSource;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import dev.hboyd.simplefreeze.command.FreezeCommands;
 import dev.hboyd.simplefreeze.command.SimpleFreezeCommand;
+import dev.hboyd.simplefreeze.config.DatabaseConfig;
 import dev.hboyd.simplefreeze.config.SimpleFreezeConfig;
 import dev.hboyd.simplefreeze.util.DomaSlf4jDelegateLogger;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
@@ -35,23 +37,19 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.flywaydb.core.Flyway;
-import org.mariadb.jdbc.MariaDbDataSource;
+import org.seasar.doma.jdbc.Config;
 import org.seasar.doma.jdbc.SimpleConfig;
-import org.seasar.doma.jdbc.dialect.Dialect;
-import org.seasar.doma.jdbc.dialect.MysqlDialect;
-import org.seasar.doma.jdbc.dialect.SqliteDialect;
 import org.slf4j.Logger;
-import org.sqlite.JDBC;
-import org.sqlite.SQLiteDataSource;
 
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.net.URI;
-import java.sql.SQLException;
+import java.net.URISyntaxException;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
+
+import static dev.hboyd.simplefreeze.config.DatabaseConfig.DatabaseType.SQLITE;
 
 public final class SimpleFreeze extends JavaPlugin implements ISimpleFreeze {
     public static final ComponentLogger LOGGER = ComponentLogger.logger(ID);
@@ -78,7 +76,14 @@ public final class SimpleFreeze extends JavaPlugin implements ISimpleFreeze {
             throw new RuntimeException("Failed to load configuration file", e);
         }
 
-        this.freezeManager = new FreezeManager(this.configureDatabase(), this.simpleFreezeConfig.alwaysDisconnectWithEntity());
+        final Config databaseConfig;
+        try {
+            databaseConfig = this.configureDatabase();
+        } catch (final URISyntaxException e) {
+            throw new RuntimeException("Failed to configure database", e);
+        }
+
+        this.freezeManager = new FreezeManager(databaseConfig, this.simpleFreezeConfig.alwaysDisconnectWithEntity());
         Bukkit.getPluginManager().registerEvents(this.freezeManager, this);
 
         // Commands
@@ -124,43 +129,50 @@ public final class SimpleFreeze extends JavaPlugin implements ISimpleFreeze {
         return HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT, op.apply(Component.text("v" + this.getPluginMeta().getVersion())));
     }
 
-    private SimpleConfig configureDatabase() {
-        final DataSource dataSource;
-        try {
-            dataSource = switch (this.simpleFreezeConfig.databaseConfig().databaseType()) {
-                case MYSQL -> {
-                    final MysqlDataSource mysqlDataSource = new MysqlDataSource();
-                    mysqlDataSource.setUrl(this.simpleFreezeConfig.databaseConfig().jdbcURI().toString());
-                    yield mysqlDataSource;
-                }
-                case SQLITE -> {
-                    final SQLiteDataSource sqLiteDataSource = new SQLiteDataSource();
-                    sqLiteDataSource.setUrl(Optional.ofNullable(this.simpleFreezeConfig.databaseConfig().jdbcURI())
-                            .map(URI::toString)
-                            .orElse(JDBC.PREFIX + this.getDataPath().resolve("database.sqlite")));
-                    yield sqLiteDataSource;
-                }
-                case MARIADB ->
-                    new MariaDbDataSource(Optional.ofNullable(this.simpleFreezeConfig.databaseConfig().jdbcURI()).orElseThrow().toString());
-            };
-        } catch (final SQLException e) {
-            throw new RuntimeException("Failed to initialize database", e);
+    private SimpleConfig configureDatabase() throws URISyntaxException {
+        URI jdbcUri = this.simpleFreezeConfig.databaseConfig().jdbcURI();
+        final DatabaseConfig.DatabaseType databaseType = this.simpleFreezeConfig.databaseConfig().databaseType();
+
+        if (jdbcUri == null) {
+            if (databaseType != SQLITE)
+                throw new IllegalStateException("jdbc-uri is null but is required for " + databaseType);
+            jdbcUri = URI.create(org.sqlite.JDBC.PREFIX + this.getDataPath().resolve("database.sqlite").toAbsolutePath().toUri().getPath());
         }
 
-        final Dialect dialect = switch (this.simpleFreezeConfig.databaseConfig().databaseType()) {
-            case MYSQL, MARIADB -> new MysqlDialect();
-            case SQLITE -> new SqliteDialect();
-        };
+        final HikariConfig hikariConfig = new HikariConfig();
+        hikariConfig.setPoolName("SimpleFreeze-" + databaseType);
+        hikariConfig.setDriverClassName(databaseType.driverClass().getCanonicalName());
+        hikariConfig.setJdbcUrl(jdbcUri.toString());
+        if (databaseType == SQLITE) hikariConfig.setMaximumPoolSize(1);
+        final HikariDataSource hikariDataSource = withContextClassLoader(() -> new HikariDataSource(hikariConfig));
 
         Flyway.configure(SimpleFreeze.class.getClassLoader())
-                .dataSource(dataSource)
-                .locations("classpath:dev/hboyd/simplefreeze/database/migration/" + dialect.getName())
+                .dataSource(hikariDataSource)
+                .locations("classpath:dev/hboyd/simplefreeze/database/migration/" + databaseType.dialect().getName())
                 .baselineOnMigrate(true)
                 .load()
                 .migrate();
 
-        return SimpleConfig.builder(dataSource, dialect)
+        return SimpleConfig.builder(hikariDataSource, databaseType.dialect())
                 .jdbcLogger(new DomaSlf4jDelegateLogger(LOGGER))
                 .build();
+    }
+
+    /**
+     * Execute the given action with the SimpleFreeze class loader and return its result.
+     *
+     * @param action the action
+     * @param <T> the action return type
+     * @return the result
+     */
+    private static <T> T withContextClassLoader(final Supplier<T> action) {
+        final Thread thread = Thread.currentThread();
+        final ClassLoader previous = thread.getContextClassLoader();
+        try {
+            thread.setContextClassLoader(SimpleFreeze.class.getClassLoader());
+            return action.get();
+        } finally {
+            thread.setContextClassLoader(previous);
+        }
     }
 }

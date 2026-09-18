@@ -20,6 +20,7 @@ prismatic = "0.3.0"
 packetEvents = "2.13.0"
 classGraph = "4.8.194"
 doma = "3.14.0"
+hikariCP = "7.1.0"
 chasm = "1.0.1"
 jetbrainsAnnotations = "26.1.0"
 jspecify = "1.0.1"
@@ -58,6 +59,7 @@ jspecify = { group = "org.jspecify", name = "jspecify", version.ref = "jspecify"
 doma = { group = "org.seasar.doma", name = "doma-core", version.ref = "doma"}
 domaProcessor = { group = "org.seasar.doma", name = "doma-processor", version.ref = "doma"}
 domaSLF4J = { group = "org.seasar.doma", name = "doma-slf4j", version.ref = "doma"}
+hikariCP = { group = "com.zaxxer", name = "HikariCP", version.ref = "hikariCP"}
 
 # JDBC
 mariaDBJDBC = { group = "org.mariadb.jdbc", name = "mariadb-java-client", version.ref = "mariaDBJDBC"}

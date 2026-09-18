@@ -19,12 +19,16 @@
 package dev.hboyd.simplefreeze.config;
 
 import org.jspecify.annotations.Nullable;
+import org.seasar.doma.jdbc.dialect.Dialect;
+import org.seasar.doma.jdbc.dialect.MysqlDialect;
+import org.seasar.doma.jdbc.dialect.SqliteDialect;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 import org.spongepowered.configurate.objectmapping.meta.Required;
 import org.spongepowered.configurate.objectmapping.meta.Setting;
 
 import java.net.URI;
+import java.sql.Driver;
 
 @ConfigSerializable
 public record DatabaseConfig(
@@ -37,8 +41,24 @@ public record DatabaseConfig(
         @Setting("jdbc-uri")
         URI jdbcURI) {
     public enum DatabaseType {
-        SQLITE,
-        MARIADB,
-        MYSQL
+        SQLITE(org.sqlite.JDBC.class, new SqliteDialect()),
+        MARIADB(org.mariadb.jdbc.Driver.class, new MysqlDialect(MysqlDialect.MySqlVersion.V8)),
+        MYSQL(com.mysql.cj.jdbc.Driver.class, new MysqlDialect(MysqlDialect.MySqlVersion.V8));
+
+        private final Class<? extends Driver> driverClass;
+        private final Dialect dialect;
+
+        DatabaseType(final Class<? extends Driver> driverClass, final Dialect dialect) {
+            this.driverClass = driverClass;
+            this.dialect = dialect;
+        }
+
+        public Class<? extends Driver> driverClass() {
+            return this.driverClass;
+        }
+
+        public Dialect dialect() {
+            return this.dialect;
+        }
     }
 }
