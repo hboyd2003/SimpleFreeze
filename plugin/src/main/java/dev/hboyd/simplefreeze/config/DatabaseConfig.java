@@ -34,7 +34,7 @@ public record DatabaseConfig(
 
         @Comment("URI to connect to the database with, not required for SQLITE")
         @Nullable
-        @Setting("jbdc-uri")
+        @Setting("jdbc-uri")
         URI jdbcURI) {
     public enum DatabaseType {
         SQLITE,

@@ -19,17 +19,26 @@
 package dev.hboyd.simplefreeze.config;
 
 import dev.hboyd.prismatic.paper.configurate.PaperConfig;
+import org.spongepowered.configurate.NodePath;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 import org.spongepowered.configurate.objectmapping.meta.Required;
+import org.spongepowered.configurate.transformation.ConfigurationTransformation;
+import org.spongepowered.configurate.transformation.TransformAction;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 
 @SuppressWarnings({"FieldMayBeFinal", "FieldCanBeLocal"})
 @ConfigSerializable
 public class SimpleFreezeConfig extends PaperConfig {
     private static final int CONFIG_VERSION = 2;
+    private static final ConfigurationTransformation CONFIG_MIGRATION = ConfigurationTransformation.versionedBuilder()
+            .addVersion(CONFIG_VERSION, ConfigurationTransformation.builder()
+                    .addAction(NodePath.of(List.of("database-config", "jbdc-uri")), TransformAction.rename("jdbc-uri"))
+                    .build())
+            .build();
 
     @Required
     private final DatabaseConfig databaseConfig = new DatabaseConfig(DatabaseConfig.DatabaseType.SQLITE, null);
@@ -39,7 +48,7 @@ public class SimpleFreezeConfig extends PaperConfig {
     private final boolean alwaysDisconnectWithEntity = true;
 
     public SimpleFreezeConfig(final Path configFilePath) throws IOException {
-        super(configFilePath, CONFIG_VERSION);
+        super(configFilePath, CONFIG_VERSION, null, null, CONFIG_MIGRATION);
         this.initialize();
     }
 
