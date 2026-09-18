@@ -29,7 +29,7 @@ plugins {
 
 dependencies {
     compileOnly(libs.paperAPI)
-    compileOnly(libs.adventureSerializerConfigurate4)
+    compileOnly(libs.bundles.adventure)
 }
 
 indra {

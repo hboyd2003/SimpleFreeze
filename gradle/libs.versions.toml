@@ -68,6 +68,7 @@ flywayCore = { group = "org.flywaydb", name = "flyway-core", version.ref = "flyw
 flywayMysql = { group = "org.flywaydb", name = "flyway-mysql", version.ref = "flyway" }
 
 # Adventure
+adventureAPI = { group = "net.kyori", name = "adventure-api", version.ref = "adventureAPI" }
 adventureSerializerConfigurate4 = { group = "net.kyori", name = "adventure-serializer-configurate4", version.ref = "adventureAPI" }
 
 # Configurate
@@ -102,6 +103,10 @@ configurate = [
 flyway = [
     "flywayCore",
     "flywayMysql"
+]
+adventure = [
+    "adventureAPI",
+    "adventureSerializerConfigurate4"
 ]
 
 # Testing
