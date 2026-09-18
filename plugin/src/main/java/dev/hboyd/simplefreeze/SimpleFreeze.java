@@ -22,6 +22,7 @@ import com.mysql.cj.jdbc.MysqlDataSource;
 import dev.hboyd.simplefreeze.command.FreezeCommands;
 import dev.hboyd.simplefreeze.command.SimpleFreezeCommand;
 import dev.hboyd.simplefreeze.config.SimpleFreezeConfig;
+import dev.hboyd.simplefreeze.util.DomaSlf4jDelegateLogger;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
@@ -39,7 +40,6 @@ import org.seasar.doma.jdbc.SimpleConfig;
 import org.seasar.doma.jdbc.dialect.Dialect;
 import org.seasar.doma.jdbc.dialect.MysqlDialect;
 import org.seasar.doma.jdbc.dialect.SqliteDialect;
-import org.seasar.doma.slf4j.Slf4jJdbcLogger;
 import org.slf4j.Logger;
 import org.sqlite.JDBC;
 import org.sqlite.SQLiteDataSource;
@@ -159,6 +159,8 @@ public final class SimpleFreeze extends JavaPlugin implements ISimpleFreeze {
                 .load()
                 .migrate();
 
-        return SimpleConfig.builder(dataSource, dialect).jdbcLogger(new Slf4jJdbcLogger()).build();
+        return SimpleConfig.builder(dataSource, dialect)
+                .jdbcLogger(new DomaSlf4jDelegateLogger(LOGGER))
+                .build();
     }
 }
