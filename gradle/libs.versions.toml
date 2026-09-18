@@ -22,7 +22,7 @@ classGraph = "4.8.194"
 doma = "3.14.0"
 chasm = "1.0.1"
 jetbrainsAnnotations = "26.1.0"
-jspecify = "1.0.0"
+jspecify = "1.0.1"
 flyway = "13.7.0"
 
 # JDBC
