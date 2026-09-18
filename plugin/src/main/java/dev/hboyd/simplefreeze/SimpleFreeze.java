@@ -67,9 +67,6 @@ public final class SimpleFreeze extends JavaPlugin implements ISimpleFreeze {
     public void onEnable() {
         LOGGER.info("Simple Freeze {} - Copyright (C) 2026 Harrison Boyd - Licensed under LGPLv3", this.getPluginMeta().getVersion());
 
-        if (!Bukkit.getAllowFlight())
-            LOGGER.error(Component.text("Flight is not allowed! Players frozen in air may get kicked! Change the \"allow-flight\" setting in server.properties to fix this."));
-
         try {
             this.simpleFreezeConfig = new SimpleFreezeConfig(this.getDataPath().resolve("config.conf"));
         } catch (final IOException e) {
