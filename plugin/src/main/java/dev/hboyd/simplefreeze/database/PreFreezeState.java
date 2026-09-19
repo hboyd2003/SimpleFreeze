@@ -42,6 +42,8 @@ public final class PreFreezeState {
     public UUID uuid;
 
     // Entities
+    private float yaw;
+    private float pitch;
     private Vector velocity;
     private int fireTicks;
     private float fallDistance;
@@ -67,6 +69,8 @@ public final class PreFreezeState {
 
     public void setWith(final Entity entity) {
         this.uuid = entity.getUniqueId();
+        this.yaw = entity.getYaw();
+        this.pitch = entity.getPitch();
         this.velocity = entity.getVelocity();
         this.fireTicks = entity.getFireTicks();
         this.fallDistance = entity.getFallDistance();
@@ -92,6 +96,7 @@ public final class PreFreezeState {
     }
 
     public void restoreTo(final Entity entity) {
+        entity.setRotation(this.yaw, this.pitch);
         entity.setVelocity(this.velocity);
         entity.setFireTicks(this.fireTicks);
         entity.setFallDistance(this.fallDistance);
@@ -127,6 +132,8 @@ public final class PreFreezeState {
         final PreFreezeState preFreezeState = new PreFreezeState();
 
         preFreezeState.uuid = entity.getUniqueId();
+        preFreezeState.yaw = 0f;
+        preFreezeState.pitch = 0f;
         preFreezeState.velocity = new Vector();
         preFreezeState.fireTicks = 0;
         preFreezeState.fallDistance = 0;
@@ -155,6 +162,14 @@ public final class PreFreezeState {
 
     public UUID uuid() {
         return this.uuid;
+    }
+
+    public float yaw() {
+        return this.yaw;
+    }
+
+    public float pitch() {
+        return this.pitch;
     }
 
     public Vector velocity() {
