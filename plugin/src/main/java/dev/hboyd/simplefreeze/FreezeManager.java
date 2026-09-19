@@ -441,6 +441,8 @@ public final class FreezeManager implements IFreezeManager, Listener, PacketList
     //endregion
 
     private void restore(final Player player) {
+        player.getScoreboardTags().remove(FROZEN_SCOREBOARD_TAG);
+
         // Restore vehicle
         final Entity vehicle = player.getVehicle();
         if (vehicle != null && vehicle.getPassengers().getFirst() == player) {
@@ -463,8 +465,6 @@ public final class FreezeManager implements IFreezeManager, Listener, PacketList
         }
 
         // Restore player
-        player.getScoreboardTags().remove(FROZEN_SCOREBOARD_TAG);
-
         player.clearTitle();
         player.sendActionBar(Component.empty());
 
@@ -500,6 +500,7 @@ public final class FreezeManager implements IFreezeManager, Listener, PacketList
             PacketEvents.getAPI().getPlayerManager().sendPacket(player, serverVehicleMovePacket);
 
             player.getVehicle().getScheduler().run(SimpleFreeze.INSTANCE, _ -> {
+                if (!player.getScoreboardTags().contains(FROZEN_SCOREBOARD_TAG)) return;
                 final WrapperPlayServerEntityVelocity vehicleVelocityPacket = new WrapperPlayServerEntityVelocity(player.getVehicle().getEntityId(), Vector3d.zero());
                 PacketEvents.getAPI().getPlayerManager().sendPacket(player, vehicleVelocityPacket);
 
