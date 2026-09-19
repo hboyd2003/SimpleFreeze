@@ -110,7 +110,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -246,7 +245,7 @@ public final class FreezeManager implements IFreezeManager, Listener, PacketList
         if (this.freezeEntryDao.delete(offlinePlayer.getUniqueId(), entryKey) >= 1) {
             final Player player = offlinePlayer.getPlayer();
             if (player != null && !this.freezeEntryDao.exists(player.getUniqueId()))
-                this.restore(player);
+                this.restore(player, false);
 
             return true;
         }
@@ -260,20 +259,15 @@ public final class FreezeManager implements IFreezeManager, Listener, PacketList
 
         this.freezeEntryDao.deleteAll(offlinePlayer.getUniqueId());
 
-        final Optional<PreFreezeState> preFreezeState = this.preFreezeStateDao.get(offlinePlayer.getUniqueId());
-        final boolean hadPreFreezeState = preFreezeState.isPresent();
+        final boolean hadPreFreezeState = this.preFreezeStateDao.exists(offlinePlayer.getUniqueId());
 
         final Player player = offlinePlayer.getPlayer();
         if (player != null) {
-            preFreezeState.orElseGet(() -> PreFreezeState
-                            .defaultOf(player))
-                    .restoreTo(player);
-            this.preFreezeStateDao.delete(player.getUniqueId());
-            player.removeScoreboardTag(FROZEN_SCOREBOARD_TAG);
-            this.removeVirtualSpectator(player);
-            player.clearTitle();
-            player.sendActionBar(Component.empty());
+            this.restore(player, true);
         }
+
+        this.preFreezeStateDao.delete(offlinePlayer.getUniqueId());
+
         return hadPreFreezeState;
     }
 
@@ -410,7 +404,7 @@ public final class FreezeManager implements IFreezeManager, Listener, PacketList
         // Sync freeze state if changed offline or reestablish virtual spectator if needed
         if (event.getPlayer().getScoreboardTags().contains(FROZEN_SCOREBOARD_TAG)) {
             if (!this.freezeEntryDao.exists(event.getPlayer().getUniqueId()))
-                this.restore(event.getPlayer());
+                this.restore(event.getPlayer(), false);
             else this.configureVirtualSpectator(event.getPlayer());
         } else if (this.freezeEntryDao.exists(event.getPlayer().getUniqueId()))
             this.setPlayerFreezeState(event.getPlayer());
@@ -434,13 +428,13 @@ public final class FreezeManager implements IFreezeManager, Listener, PacketList
         // Sync freeze state if changed while dead
         if (event.getPlayer().getScoreboardTags().contains(FROZEN_SCOREBOARD_TAG)) {
             if (!this.freezeEntryDao.exists(event.getPlayer().getUniqueId()))
-                this.restore(event.getPlayer());
+                this.restore(event.getPlayer(), false);
         } else if (this.freezeEntryDao.exists(event.getPlayer().getUniqueId()))
             this.setPlayerFreezeState(event.getPlayer());
     }
     //endregion
 
-    private void restore(final Player player) {
+    private void restore(final Player player, final boolean alwaysUseDefaultState) {
         player.getScoreboardTags().remove(FROZEN_SCOREBOARD_TAG);
 
         // Restore vehicle
@@ -448,12 +442,15 @@ public final class FreezeManager implements IFreezeManager, Listener, PacketList
         if (vehicle != null && vehicle.getPassengers().getFirst() == player) {
             vehicle.getScoreboardTags().remove(FROZEN_SCOREBOARD_TAG);
 
-            final Optional<PreFreezeState> preFreezeState = this.preFreezeStateDao.get(vehicle.getUniqueId());
-            if (preFreezeState.isPresent()) preFreezeState.get().restoreTo(vehicle);
-            else {
-                SimpleFreeze.LOGGER.warn("Failed to find pre-freeze state for entity {} ({}). Entity will be set to a default state", vehicle.getType().getKey(), vehicle.getUniqueId());
-                PreFreezeState.defaultOf(player).restoreTo(vehicle);
+            PreFreezeState vehiclePreFreezeState = null;
+            if (!alwaysUseDefaultState) vehiclePreFreezeState = this.preFreezeStateDao.get(vehicle.getUniqueId());
+            if (vehiclePreFreezeState == null) {
+                if (!alwaysUseDefaultState)
+                    SimpleFreeze.LOGGER.warn("Failed to find pre-freeze state for entity {} ({}). Entity will be set to a default state", vehicle.getType().getKey(), vehicle.getUniqueId());
+
+                vehiclePreFreezeState = PreFreezeState.defaultOf(player);
             }
+            vehiclePreFreezeState.restoreTo(player);
             this.preFreezeStateDao.delete(vehicle.getUniqueId());
 
             final int[] vehiclePassengers = player.getVehicle().getPassengers().stream()
@@ -469,12 +466,16 @@ public final class FreezeManager implements IFreezeManager, Listener, PacketList
         player.sendActionBar(Component.empty());
 
         this.removeVirtualSpectator(player);
-        final Optional<PreFreezeState> preFreezeState = this.preFreezeStateDao.get(player.getUniqueId());
-        if (preFreezeState.isPresent()) preFreezeState.get().restoreTo(player);
-        else {
-            SimpleFreeze.LOGGER.warn("Failed to find pre-freeze state for player {} ({}). Player will be set to a default state", player.getName(), player.getUniqueId());
-            PreFreezeState.defaultOf(player).restoreTo(player);
+
+        PreFreezeState playerPreFreezeState = null;
+        if (!alwaysUseDefaultState) playerPreFreezeState = this.preFreezeStateDao.get(player.getUniqueId());
+        if (playerPreFreezeState == null) {
+            if (!alwaysUseDefaultState)
+                SimpleFreeze.LOGGER.warn("Failed to find pre-freeze state for player {} ({}). Player will be set to a default state", player.getName(), player.getUniqueId());
+
+            playerPreFreezeState = PreFreezeState.defaultOf(player);
         }
+        playerPreFreezeState.restoreTo(player);
         this.preFreezeStateDao.delete(player.getUniqueId());
 
         // Restore passengers

@@ -18,13 +18,13 @@
 
 package dev.hboyd.simplefreeze.database;
 
+import org.jspecify.annotations.Nullable;
 import org.seasar.doma.Dao;
 import org.seasar.doma.Delete;
 import org.seasar.doma.Insert;
 import org.seasar.doma.Select;
 import org.seasar.doma.Sql;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Dao
@@ -35,7 +35,7 @@ public interface PreFreezeStateDao {
              WHERE uuid = /* uuid */0
             """)
     @Select
-    Optional<PreFreezeState> get(UUID uuid);
+    @Nullable PreFreezeState get(UUID uuid);
 
     @Select
     @Sql("""
