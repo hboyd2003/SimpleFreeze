@@ -21,6 +21,7 @@ package dev.hboyd.simplefreeze.database.datatype;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import org.jspecify.annotations.Nullable;
 import org.seasar.doma.jdbc.domain.DomainConverter;
 
 import java.util.Collection;
@@ -39,8 +40,8 @@ public class JsonListDomainConverter<A, T extends DomainConverter<A, String>> {
         return jsonArray;
     }
 
-    public Collection<A> fromJson(final JsonElement element) {
-        if (element == null) return List.of();
+    public Collection<A> fromJson(@Nullable final JsonElement element) {
+        if (element == null || element.isJsonNull()) return List.of();
         final JsonArray jsonArray = element.getAsJsonArray();
         return jsonArray.asList().stream()
                 .map(JsonElement::toString)
