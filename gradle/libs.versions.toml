@@ -14,6 +14,7 @@ hangarPublish = "0.1.4"
 
 # Libraries
 adventureAPI = "5.2.0"
+adventureAPI4 = "4.26.1"
 configurate = "4.2.0"
 configurateNBT = "2.0.0"
 prismatic = "0.4.0"
@@ -71,7 +72,7 @@ flywayMysql = { group = "org.flywaydb", name = "flyway-mysql", version.ref = "fl
 
 # Adventure
 adventureAPI = { group = "net.kyori", name = "adventure-api", version.ref = "adventureAPI" }
-adventureSerializerConfigurate4 = { group = "net.kyori", name = "adventure-serializer-configurate4", version.ref = "adventureAPI" }
+adventureSerializerConfigurate4 = { group = "net.kyori", name = "adventure-serializer-configurate4", version.ref = "adventureAPI4" }
 
 # Configurate
 configurateHocon = { group = "org.spongepowered", name = "configurate-hocon", version.ref = "configurate" }
