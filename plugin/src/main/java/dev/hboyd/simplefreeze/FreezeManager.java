@@ -57,8 +57,6 @@ import io.papermc.paper.event.player.PlayerTrackEntityEvent;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.ComponentBuilder;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.title.Title;
 import net.kyori.adventure.util.Ticks;
 import org.bukkit.Bukkit;
@@ -370,13 +368,13 @@ public final class FreezeManager implements IFreezeManager, Listener, PacketList
                     .filter(eventClass -> !CANCELLABLE_EVENT_EXCEPTIONS.contains(eventClass))
                     .collect(Collectors.toList());
 
-            final ComponentBuilder<TextComponent, TextComponent.Builder> componentBuilder = Component.text()
-                    .appendNewline()
-                    .append(Component.text("Cancellable " + eventSuperClass.getName() + " Events: "));
-            for (final Class<?> cancellableEvent : cancellableEvents) {
-                componentBuilder.appendNewline().append(Component.text(cancellableEvent.getName()));
+            if (SimpleFreeze.LOGGER.isDebugEnabled()) {
+                SimpleFreeze.LOGGER.debug(cancellableEvents.stream()
+                        .map(Class::getName)
+                        .collect(Collectors.joining(", ",
+                                "Cancellable " + eventSuperClass.getName() + " Events: [",
+                                "]")));
             }
-            SimpleFreeze.LOGGER.debug(componentBuilder.build());
             return cancellableEvents;
         }
     }
@@ -599,11 +597,11 @@ public final class FreezeManager implements IFreezeManager, Listener, PacketList
         final WrapperPlayServerDestroyEntities destroyEntitiesPacket = new WrapperPlayServerDestroyEntities(BLOCK_DISPLAY_ENTITY_ID);
         PacketEvents.getAPI().getPlayerManager().sendPacket(player, destroyEntitiesPacket);
 
-        //
+        // Restore camera
         final WrapperPlayServerCamera camera = new WrapperPlayServerCamera(player.getEntityId());
         PacketEvents.getAPI().getPlayerManager().sendPacket(player, camera);
 
-        // Set to spectator
+        // Restore gamemode
         final WrapperPlayServerChangeGameState gameStatePacket = new WrapperPlayServerChangeGameState(WrapperPlayServerChangeGameState.Reason.CHANGE_GAME_MODE, player.getGameMode().getValue());
         PacketEvents.getAPI().getPlayerManager().sendPacket(player, gameStatePacket);
     }
