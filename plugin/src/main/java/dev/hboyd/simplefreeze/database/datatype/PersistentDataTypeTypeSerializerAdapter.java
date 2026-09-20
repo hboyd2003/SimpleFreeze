@@ -18,8 +18,8 @@
 
 package dev.hboyd.simplefreeze.database.datatype;
 
-import dev.hboyd.configurateNBT.NBTCompression;
-import dev.hboyd.configurateNBT.NBTConfigurationLoader;
+import dev.hboyd.configurate_nbt.NBTCompression;
+import dev.hboyd.configurate_nbt.NBTConfigurationLoader;
 import org.bukkit.persistence.PersistentDataAdapterContext;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
