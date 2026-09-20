@@ -24,6 +24,7 @@ import org.seasar.doma.jdbc.AbstractJdbcLogger;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.slf4j.event.Level;
+import org.slf4j.spi.DefaultLoggingEventBuilder;
 import org.slf4j.spi.LoggingEventBuilder;
 
 import java.util.Objects;
@@ -59,7 +60,9 @@ public class DomaSlf4jDelegateLogger extends AbstractJdbcLogger<Level> {
         if (level == null) level = this.defaultLevel;
         if (!this.logger.isEnabledForLevel(level)) return;
 
-        final LoggingEventBuilder loggingEventBuilder = this.logger.atLevel(level != null ? level : this.defaultLevel)
+        // TODO: Use the actual component logging event builder once Adventure 4 support is removed
+        // Use default logging event builder to get around Adventure 4 differences.
+        final LoggingEventBuilder loggingEventBuilder = new DefaultLoggingEventBuilder(this.logger, level != null ? level : this.defaultLevel)
                 .addMarker(DOMA_MARKER)
                 .setCause(throwable);
 
