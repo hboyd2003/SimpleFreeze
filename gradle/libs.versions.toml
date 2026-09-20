@@ -17,7 +17,7 @@ adventureAPI = "5.2.0"
 adventureAPI4 = "4.26.1"
 configurate = "4.2.0"
 configurateNBT = "2.0.0"
-prismatic = "0.4.0"
+prismatic = "0.4.2"
 packetEvents = "2.13.0"
 classGraph = "4.8.194"
 doma = "3.14.0"
@@ -34,7 +34,7 @@ mySQLJDBC = "26.7.0"
 
 # Testing
 junit = "6.0.3"
-minecraft = "1.21.11"
+minecraft = "26.2"
 
 [plugins]
 gradleShadow = { id = "com.gradleup.shadow", version.ref = "gradleShadow" }
