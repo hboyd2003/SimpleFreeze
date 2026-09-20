@@ -127,16 +127,15 @@ public class SimpleFreezeCommand implements BrigadierCommand {
         final Map<OfflinePlayer, LinkedHashSet<Key>> freezeEntryMap = this.simpleFreeze.freezeManager()
                 .getFreezeEntryMap();
 
-        final TextComponent lines = Component.text()
-                .append(Component.translatable("simplefreeze.command.simplefreeze.status.total",
-                        Argument.numeric("player_count", freezeEntryMap.size())))
-                .appendNewline()
-                .append(Component.translatable("simplefreeze.command.simplefreeze.status.uniqueKeys",
+        final TextComponent lines = Component.textOfChildren(
+                Component.translatable("simplefreeze.command.simplefreeze.status.total",
+                        Argument.numeric("player_count", freezeEntryMap.size())),
+                Component.newline(),
+                Component.translatable("simplefreeze.command.simplefreeze.status.uniqueKeys",
                         Argument.numeric("freeze_entry_count", freezeEntryMap.values().stream()
                                 .flatMap(Collection::stream)
                                 .distinct()
-                                .count())))
-                .build();
+                                .count())));
 
         commandContext.getSource().getSender().sendMessage(
                 GroupedComponent.of(Component.translatable("simplefreeze.command.simplefreeze.status.header"), lines));
@@ -151,22 +150,21 @@ public class SimpleFreezeCommand implements BrigadierCommand {
 
         final LinkedHashSet<Key> freezeEntries = this.simpleFreeze.freezeManager().getFreezeEntries(offlinePlayer);
 
-        final TextComponent lines = Component.text()
-                .append(Component.translatable("simplefreeze.command.simplefreeze.status.player.totalentries",
-                        Argument.numeric("freeze_entry_count", (long) freezeEntries.size())))
-                .appendNewline()
-                .append(Component.translatable("simplefreeze.command.simplefreeze.status.player.entries",
+        final TextComponent lines = Component.textOfChildren(
+                Component.translatable("simplefreeze.command.simplefreeze.status.player.totalentries",
+                        Argument.numeric("freeze_entry_count", (long) freezeEntries.size())),
+                Component.newline(),
+                Component.translatable("simplefreeze.command.simplefreeze.status.player.entries",
                         Argument.string("freeze_entries", freezeEntries.stream()
                                 .map(Key::asString)
-                                .collect(Collectors.joining(",")))))
-                .appendNewline()
-                .append(Component.translatable("simplefreeze.command.simplefreeze.status.player.lastEntry",
-                        Argument.string("freeze_entry", freezeEntries.getFirst().asString())))
-                .appendNewline()
-                .append(Component.translatable("simplefreeze.command.simplefreeze.status.player.frozenSince",
+                                .collect(Collectors.joining(",")))),
+                Component.newline(),
+                Component.translatable("simplefreeze.command.simplefreeze.status.player.lastEntry",
+                        Argument.string("freeze_entry", freezeEntries.getFirst().asString())),
+                Component.newline(),
+                Component.translatable("simplefreeze.command.simplefreeze.status.player.frozenSince",
                         Argument.string("frozen_timestamp",
-                                ISO_LOCAL_DATE.withZone(ZoneId.systemDefault()).format(Instant.now()))))
-                .build();
+                                ISO_LOCAL_DATE.withZone(ZoneId.systemDefault()).format(Instant.now()))));
 
         commandContext.getSource()
                 .getSender()
