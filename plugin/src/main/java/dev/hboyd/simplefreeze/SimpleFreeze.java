@@ -158,8 +158,8 @@ public final class SimpleFreeze extends JavaPlugin implements ISimpleFreeze {
     /**
      * Execute the given action with the SimpleFreeze class loader and return its result.
      *
-     * @param action the action
      * @param <T> the action return type
+     * @param action the action
      * @return the result
      */
     private static <T> T withContextClassLoader(final Supplier<T> action) {
