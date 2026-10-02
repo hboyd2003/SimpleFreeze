@@ -68,7 +68,8 @@ tasks {
     }
 }
 
-val supportedMinecraftVersions = listOf("1.21.8", "1.21.9", "1.21.10", "1.21.11", "26.1", "26.1.1", "26.1.2", "26.2")
+val supportedMinecraftVersions =
+    listOf("1.21.8", "1.21.9", "1.21.10", "1.21.11", "26.1", "26.1.1", "26.1.2", "26.2", "26.3")
 val fullVersion = rootProject.extensions.getByType(GitSimpleSemverExtension::class.java).version
 val publishVersion = fullVersion.buildVersionString(
     includePreReleaseLabel = true,
